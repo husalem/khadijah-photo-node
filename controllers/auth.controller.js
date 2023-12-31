@@ -1,9 +1,32 @@
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const twilio = require('twilio');
 
 const config = require('../config');
 const User = require('../models/user');
 const io = require('../socket');
+
+exports.createVerification = async (req, res, next) => {
+  const { phone } = req.body || '+966597911330';
+
+  try {
+    const client = twilio(process.env.TWILIO_ACCT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+    const verification = await client.verify.v2.services(process.env.TWILIO_SRV_SID).verifications.create({
+      to: phone,
+      channel: 'sms'
+    });
+
+    console.log(`Twilio: Verification to ${verification.to}`, `Status: ${verification.status}`);
+    res.status(200).json(verification);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
 
 exports.getUserCount = async (req, res, next) => {
   try {
@@ -80,7 +103,7 @@ exports.signup = async (req, res, next) => {
       },
       'Kh@dijahPh0t0',
       {
-        expiresIn: '72h'
+        expiresIn: '30d'
       }
     );
 

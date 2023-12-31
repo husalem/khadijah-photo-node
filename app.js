@@ -6,12 +6,14 @@ const mongoose = require('mongoose');
 const compression = require('compression');
 const helmet = require('helmet');
 const cron = require('node-cron');
+const dotenv = require('dotenv');
 
 const config = require('./config');
 const fileStorage = require('./middleware/file-storage.middleware');
 const cors = require('./middleware/cors.middleware');
 const notFound = require('./middleware/not-found.middleware');
 const serverError = require('./middleware/server-error.middleware');
+const authRoute = require('./routes/auth.route');
 
 const app = express();
 
@@ -29,9 +31,12 @@ app.use(fileStorage);
 
 // Include assets folder
 app.use(express.static(path.join(__dirname, 'assets')));
-app.use('/assets', express.static(path.join(__dirname, 'assets')))
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
+dotenv.config();
 
 // Register routes
+app.use(authRoute);
 
 // Resource not found handler
 app.use(notFound);
