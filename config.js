@@ -24,10 +24,3 @@ exports.FIREBASE = {
   messagingSenderId: '707035189304',
   appId: '1:707035189304:web:487a5ea425a0b1b5c9d6cd'
 };
-
-// Twilio Config
-exports.TWILIO = {
-  name: 'khadijahphoto',
-  sid: 'SK201ae0e209f84c0f1480fc73e02f6f75',
-  secret: 'ZYP1mQjQ6Okq6dM61QMvMhmXhS1FESNf'
-}
