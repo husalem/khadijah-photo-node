@@ -1,13 +1,10 @@
 const path = require('path');
-const fs = require('fs');
 
 const express = require('express');
 const mongoose = require('mongoose');
 const compression = require('compression');
 const helmet = require('helmet');
-const cron = require('node-cron');
 
-const config = require('./config');
 const fileStorage = require('./middleware/file-storage.middleware');
 const cors = require('./middleware/cors.middleware');
 const notFound = require('./middleware/not-found.middleware');
@@ -16,7 +13,10 @@ const authRoute = require('./routes/auth.route');
 
 const app = express();
 
+// Helmet for security headers
 app.use(helmet());
+
+// File compression
 app.use(compression());
 
 // Include URL body
@@ -41,8 +41,16 @@ app.use(notFound);
 // Server-side error handler
 app.use(serverError);
 
+// MongoDB connection string config
+const { mongo } = JSON.parse(process.env.APP_CONFIG || '{}');
+const USERNAME = mongo.user;
+const PASSWORD = mongo.password;
+
+// MongoDB URI
+const connection = `${process.env.development ? 'mongodb+srv' : 'mongodb'}://${USERNAME}:${encodeURIComponent(PASSWORD)}@${mongo.hostString}`;
+
 mongoose
-  .connect(config.MONGODB)
+  .connect(connection)
   .then((result) => {
     console.clear();
     console.log(`${new Date().toLocaleString()}: Connected`);

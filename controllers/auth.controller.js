@@ -111,7 +111,7 @@ exports.checkVerification = async (req, res, next) => {
   }
 };
 
-exports.getUserCount = async (req, res, next) => {
+exports.getUsersCount = async (req, res, next) => {
   try {
     const count = await User.countDocuments();
 
@@ -150,20 +150,97 @@ exports.getUsers = async (req, res, next) => {
   }
 };
 
-exports.signup = async (req, res, next) => {
+exports.getUser = async (req, res, next) => {
+  const { userId } = req.params;
+  const errors = validationResult(req);
+
+  try {
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+  
+      throw error;
+    }
+
+    const currentUser = await User.findById(req.userId);
+
+    if (!currentUser || req.userRole !== '0') {
+      const error = new Error('No authorization');
+      error.statusCode = 403;
+
+      throw error;
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      const error = new Error('User is not registered');
+      error.statusCode = 400;
+
+      throw error;
+    }
+
+    const { role, ...resultUser } = user;
+
+    res.status(200).json(resultUser);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.userExists = async (req, res, next) => {
+  const { phone } = req.body;
+  const errors = validationResult(req);
+
+  try {
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+  
+      throw error;
+    }
+
+    const user = await User.findOne({ phone });
+
+    res.status(200).json({ registered: !!user });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.register = async (req, res, next) => {
   const { phone, firstName, lastName } = req.body;
   const errors = validationResult(req);
 
-  if (!errors.isEmpty()) {
-    const error = new Error(errors.array()[0].msg);
-    error.statusCode = 400;
-    error.data = errors.array();
-
-    throw error;
-  }
-
   try {
-    const userExists = await User.findOne({ email: email });
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+  
+      throw error;
+    }
+
+    const userExists = await User.findOne({ phone });
 
     if (userExists) {
       const error = new Error('User already is registered');
@@ -172,9 +249,9 @@ exports.signup = async (req, res, next) => {
       throw error;
     }
 
-    const name = firstName.concat(' ', lastName).trim();
+    const name = firstName.concat(' ', lastName);
 
-    const userObj = new User({ phone, name });
+    const userObj = new User({ phone, name, lastLogin: new Date() });
 
     const user = await userObj.save();
 
@@ -204,4 +281,57 @@ exports.signup = async (req, res, next) => {
   }
 };
 
-exports.signin = async (req, res, next) => {};
+exports.signin = async (req, res, next) => {
+  const { phone } = req.body;
+  const errors = validationResult(req);
+
+  try {
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+  
+      throw error;
+    }
+
+    const user = await User.findOne({ phone });
+
+    if (!user) {
+      const error = new Error('User is not registered');
+      error.statusCode = 400;
+
+      throw error;
+    }
+
+    // Log last login
+    user.lastLogin = new Date();
+    await user.save();
+
+    const token = jwt.sign(
+      {
+        phone: user.phone,
+        userId: user._id.toString(),
+        userRole: user.role
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: '30d'
+      }
+    );
+
+    res.status(201).json({
+      token: token,
+      userId: user._id.toString(),
+      userRole: user.role
+    });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};

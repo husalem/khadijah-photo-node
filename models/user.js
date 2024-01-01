@@ -9,7 +9,6 @@ const userSchema = new Schema(
       required: [true, 'Phone number is missiing'],
       validate: [(value) => /^\d{9,}$/, 'Phone must contain only numbers']
     },
-    confirmCode: String,
     name: String,
     role: {
       type: String,
