@@ -6,7 +6,6 @@ const mongoose = require('mongoose');
 const compression = require('compression');
 const helmet = require('helmet');
 const cron = require('node-cron');
-const dotenv = require('dotenv');
 
 const config = require('./config');
 const fileStorage = require('./middleware/file-storage.middleware');
@@ -32,8 +31,6 @@ app.use(fileStorage);
 // Include assets folder
 app.use(express.static(path.join(__dirname, 'assets')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
-
-dotenv.config();
 
 // Register routes
 app.use(authRoute);

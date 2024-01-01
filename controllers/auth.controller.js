@@ -2,23 +2,106 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const twilio = require('twilio');
 
-const config = require('../config');
 const User = require('../models/user');
 const io = require('../socket');
 
 exports.createVerification = async (req, res, next) => {
-  const { phone } = req.body || '+966597911330';
+  const errors = validationResult(req);
+  const { countryCode, phone } = req.body;
 
   try {
-    const client = twilio(process.env.TWILIO_ACCT_SID, process.env.TWILIO_AUTH_TOKEN);
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr
+      const error = new Error(msg);
 
-    const verification = await client.verify.v2.services(process.env.TWILIO_SRV_SID).verifications.create({
-      to: phone,
-      channel: 'sms'
+      error.statusCode = 400;
+      error.data = { path, value };
+  
+      throw error;
+    }
+
+    const client = twilio(
+      process.env.TWILIO_ACCT_SID, 
+      process.env.TWILIO_AUTH_TOKEN
+    );
+
+    const phoneNumber = `+${countryCode || '966'}${phone}`;
+
+    /************** IN DEVELOPMENT, NO NEED TO SEND SMS **************/
+    if (process.env.development) {
+      return res.status(200)
+        .json({ message: 'Development', status: 'Sent' });
+    }
+
+    const verification = await client.verify.v2
+      .services(process.env.TWILIO_SRV_SID)
+      .verifications
+      .create({
+        to: phoneNumber,
+        channel: 'sms'
+      });
+
+    io.websocket().emit('auth', {
+      to: verification.to, 
+      status: verification.status
     });
 
-    console.log(`Twilio: Verification to ${verification.to}`, `Status: ${verification.status}`);
-    res.status(200).json(verification);
+    res.status(200)
+      .json({ status: verification.status });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.checkVerification = async (req, res, next) => {
+  const errors = validationResult(req);
+  const { countryCode, phone, code } = req.body;
+
+  try {
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+  
+      throw error;
+    }
+
+    const client = twilio(
+      process.env.TWILIO_ACCT_SID, 
+      process.env.TWILIO_AUTH_TOKEN
+    );
+
+    const phoneNumber = `+${countryCode || '966'}${phone}`;
+
+    /************** IN DEVELOPMENT, NO NEED TO CHECK **************/
+    if (process.env.development) {
+      return res.status(200)
+        .json({ message: 'Development', status: 'approved' });
+    }
+
+    const verification = await client.verify.v2
+      .services(process.env.TWILIO_SRV_SID)
+      .verificationChecks
+      .create({
+        to: phoneNumber,
+        code: code
+      });
+
+    io.websocket().emit('auth', {
+      to: verification.to, 
+      status: verification.status
+    });
+
+    res.status(200)
+      .json({ status: verification.status });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -101,7 +184,7 @@ exports.signup = async (req, res, next) => {
         userId: user._id.toString(),
         userRole: user.role
       },
-      'Kh@dijahPh0t0',
+      process.env.JWT_SECRET,
       {
         expiresIn: '30d'
       }
