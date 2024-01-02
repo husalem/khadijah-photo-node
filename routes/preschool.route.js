@@ -5,7 +5,7 @@ const controller = require('../controllers/preschool.controller');
 const isAuth = require('../middleware/is-auth.middleware');
 const isAdmin = require('../middleware/is-admin.middleware');
 
-const router = express.Router;
+const router = express.Router();
 
 router.get(
   '/preschools/count',
@@ -56,3 +56,5 @@ router.delete(
   isAdmin,
   controller.deletePreschool
 );
+
+module.exports = router;

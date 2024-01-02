@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 const themeSchema = new Schema(
   {
-    samplePath: {
+    imagePath: {
       type: String,
       required: true,
     },
@@ -19,6 +19,10 @@ const themeSchema = new Schema(
     },
     tags: [String],
     showInStudio: {
+      type: Boolean,
+      default: true,
+    },
+    active: {
       type: Boolean,
       default: true,
     }

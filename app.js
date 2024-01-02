@@ -5,12 +5,12 @@ const mongoose = require('mongoose');
 const compression = require('compression');
 const helmet = require('helmet');
 
-const fileStorage = require('./middleware/file-storage.middleware');
 const cors = require('./middleware/cors.middleware');
 const notFound = require('./middleware/not-found.middleware');
 const serverError = require('./middleware/server-error.middleware');
 const authRoute = require('./routes/auth.route');
 const preschoolRoute = require('./routes/preschool.route');
+const themeRoute = require('./routes/theme.route');
 
 const app = express();
 
@@ -26,16 +26,13 @@ app.use(express.json());
 // Prevent CORS errors
 app.use(cors);
 
-// Configure multer and file storage
-app.use(fileStorage);
-
 // Include assets folder
 app.use(express.static(path.join(__dirname, 'assets')));
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // Register routes
 app.use(authRoute);
 app.use(preschoolRoute);
+app.use(themeRoute);
 
 // Resource not found handler
 app.use(notFound);
