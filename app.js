@@ -10,6 +10,7 @@ const cors = require('./middleware/cors.middleware');
 const notFound = require('./middleware/not-found.middleware');
 const serverError = require('./middleware/server-error.middleware');
 const authRoute = require('./routes/auth.route');
+const preschoolRoute = require('./routes/preschool.route');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // Register routes
 app.use(authRoute);
+app.use(preschoolRoute);
 
 // Resource not found handler
 app.use(notFound);

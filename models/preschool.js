@@ -13,9 +13,13 @@ const preschoolSchema = new Schema(
       type: String,
       required: true,
       minLength: 3
+    },
+    active: {
+      type: Boolean,
+      default: true
     }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Preshool', preschoolSchema);
+module.exports = mongoose.model('Preschool', preschoolSchema);

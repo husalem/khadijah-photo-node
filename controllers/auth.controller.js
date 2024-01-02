@@ -257,7 +257,7 @@ exports.register = async (req, res, next) => {
 
     const token = jwt.sign(
       {
-        photo: user.photo,
+        phone: user.phone,
         userId: user._id.toString(),
         userRole: user.role
       },
