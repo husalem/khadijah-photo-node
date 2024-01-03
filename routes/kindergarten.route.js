@@ -1,54 +1,54 @@
 const express = require('express');
 const { body } = require('express-validator');
 
-const controller = require('../controllers/preschool.controller');
+const controller = require('../controllers/kindergarten.controller');
 const isAuth = require('../middleware/is-auth.middleware');
 const isAdmin = require('../middleware/is-admin.middleware');
 
 const router = express.Router();
 
 router.get(
-  '/preschools/count',
-  controller.getPreschoolsCount
+  '/kindergartens/count',
+  controller.getKindergartensCount
 );
 
 router.get(
-  '/preschools/:preschoolId',
-  controller.getPreschool
+  '/kindergartens/:kindergartenId',
+  controller.getKindergarten
 );
 
 router.get(
-  '/preschools',
-  controller.getPreschools
+  '/kindergartens',
+  controller.getKindergartens
 );
 
 router.post(
-  '/preschools',
+  '/kindergartens',
   isAuth,
   isAdmin,
   body(['name', 'district'])
     .trim()
     .notEmpty().withMessage('Missing parameter')
     .isLength({ min: 3 }).withMessage('Parameter must be of length 3 at least'),
-  controller.createPreschool
+  controller.createKindergarten
 );
 
 router.put(
-  '/preschools/:preschoolId',
+  '/kindergartens/:kindergartenId',
   isAuth,
   isAdmin,
   body(['name', 'district'])
     .trim()
     .notEmpty().withMessage('Missing parameter')
     .isLength({ min: 3 }).withMessage('Parameter must be of length 3 at least'),
-  controller.updatePreschool
+  controller.updateKindergarten
 );
 
 router.delete(
-  '/preschools/:preschoolId',
+  '/kindergartens/:kindergartenId',
   isAuth,
   isAdmin,
-  controller.deletePreschool
+  controller.deleteKindergarten
 );
 
 module.exports = router;

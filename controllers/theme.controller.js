@@ -82,9 +82,64 @@ exports.createTheme = async (req, res, next) => {
       throw error;
     }
 
-    const tags = input.tags ? input.tags.split(',') : [];
+    const tags = input.tags ? 
+      input.tags.split(',').map(tag => tag.trim())
+      : [];
 
     const themeObj = new Theme({ imagePath: themeImage.path, ...input, tags });
+
+    const theme = await themeObj.save();
+
+    res.status(201).json(theme);
+  } catch (error) {
+    // Delete file if uploaded in case of error
+    if (themeImage && fs.existsSync(themeImage.path)) {
+      fs.unlink(themeImage.path);
+    }
+
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.updateTheme = async (req, res, next) => {
+  const { themeId } = req.params;
+  const themeImage = req.file;
+  const input = req.body;
+  const errors = validationResult(req);
+
+  try {
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+  
+      throw error;
+    }
+
+    let loadedTheme = await Theme.findById(themeId);
+
+    // If file was uploaded, delete the old file
+    if (themeImage) {
+      if (fs.existsSync(loadedTheme.imagePath)) {
+        fs.unlink(loadedTheme.imagePath);
+      }
+
+      // Update the path
+      loadedTheme.imagePath = themeImage.path;
+    }
+
+    const tags = input.tags ? 
+      input.tags.split(',').map(tag => tag.trim())
+      : [];
+
+    const themeObj = new Theme({ ...loadedTheme, ...input, tags });
 
     const theme = await themeObj.save();
 
@@ -102,8 +157,6 @@ exports.createTheme = async (req, res, next) => {
     next(error);
   }
 };
-
-exports.updateTheme = async (req, res, next) => {};
 
 exports.deleteTheme = async (req, res, next) => {};
 

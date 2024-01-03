@@ -1,23 +1,23 @@
 const { validationResult } = require('express-validator');
 
-const Preschool = require('../models/preschool');
+const Kindergarten = require('../models/kindergarten');
 
-exports.getPreschool = async (req, res, next) => {
-  const { preschoolId } = req.params;
+exports.getKindergarten = async (req, res, next) => {
+  const { kindergartenId } = req.params;
 
-  console.log(preschoolId);
+  console.log(kindergartenId);
 
   try {
-    const preschool = await Preschool.findById(preschoolId);
+    const kindergarten = await Kindergarten.findById(kindergartenId);
 
-    if (!preschool) {
-      const error = new Error('Preschool does not exist');
+    if (!kindergarten) {
+      const error = new Error('Kindergarten does not exist');
       error.statusCode = 404;
 
       throw error;
     }
 
-    res.status(200).json(preschool);
+    res.status(200).json(kindergarten);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -27,13 +27,13 @@ exports.getPreschool = async (req, res, next) => {
   }
 };
 
-exports.getPreschools = async (req, res, next) => {
+exports.getKindergartens = async (req, res, next) => {
   const { skip, limit } = req.query;
 
   try {
-    const preschools = await Preschool.find().skip(skip).limit(limit);
+    const kindergartens = await Kindergarten.find().skip(skip).limit(limit);
 
-    res.status(200).json(preschools);
+    res.status(200).json(kindergartens);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -43,9 +43,9 @@ exports.getPreschools = async (req, res, next) => {
   }
 };
 
-exports.getPreschoolsCount = async (req, res, next) => {
+exports.getKindergartensCount = async (req, res, next) => {
   try {
-    const count = await Preschool.countDocuments();
+    const count = await Kindergarten.countDocuments();
 
     res.status(200).json(count);
   } catch (error) {
@@ -57,7 +57,7 @@ exports.getPreschoolsCount = async (req, res, next) => {
   }
 };
 
-exports.createPreschool = async (req, res, next) => {
+exports.createKindergarten = async (req, res, next) => {
   const { name, district } = req.body;
   const errors = validationResult(req);
 
@@ -73,11 +73,11 @@ exports.createPreschool = async (req, res, next) => {
       throw error;
     }
 
-    const preschoolObj = new Preschool({ name, district });
+    const kindergartenObj = new Kindergarten({ name, district });
 
-    const preschool = await preschoolObj.save();
+    const kindergarten = await kindergartenObj.save();
 
-    res.status(201).json(preschool);
+    res.status(201).json(kindergarten);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -87,8 +87,8 @@ exports.createPreschool = async (req, res, next) => {
   }
 };
 
-exports.updatePreschool = async (req, res, next) => {
-  const { preschoolId } = req.params;
+exports.updateKindergarten = async (req, res, next) => {
+  const { kindergartenId } = req.params;
   const { name, district } = req.body;
   const errors = validationResult(req);
 
@@ -104,21 +104,21 @@ exports.updatePreschool = async (req, res, next) => {
       throw error;
     }
 
-    let loadedPreschool = await Preschool.findById(preschoolId);
+    let loadedKindergarten = await Kindergarten.findById(kindergartenId);
 
-    if (!loadedPreschool) {
-      const error = new Error('Preschool does not exist');
+    if (!loadedKindergarten) {
+      const error = new Error('Kindergarten does not exist');
       error.statusCode = 404;
 
       throw error;
     }
 
-    loadedPreschool.name = name;
-    loadedPreschool.district = district;
+    loadedKindergarten.name = name;
+    loadedKindergarten.district = district;
 
-    await loadedPreschool.save();
+    await loadedKindergarten.save();
 
-    res.status(201).json(loadedPreschool);
+    res.status(201).json(loadedKindergarten);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -128,13 +128,13 @@ exports.updatePreschool = async (req, res, next) => {
   }
 };
 
-exports.deletePreschool = async (req, res, next) => {
-  const { preschoolId } = req.params;
+exports.deleteKindergarten = async (req, res, next) => {
+  const { kindergartenId } = req.params;
 
   try {
-    await Preschool.findByIdAndUpdate(preschoolId, { active: false });
+    await Kindergarten.findByIdAndUpdate(kindergartenId, { active: false });
 
-    res.status(201).json({ message: 'Preschool was deleted' });
+    res.status(201).json({ message: 'Kindergarten was deleted' });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

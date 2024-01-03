@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const preschoolSchema = new Schema(
+const kindergartenSchema = new Schema(
   {
     name: {
       type: String,
@@ -22,4 +22,4 @@ const preschoolSchema = new Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Preschool', preschoolSchema);
+module.exports = mongoose.model('Kindergarten', kindergartenSchema);
