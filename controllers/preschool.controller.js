@@ -5,6 +5,8 @@ const Preschool = require('../models/preschool');
 exports.getPreschool = async (req, res, next) => {
   const { preschoolId } = req.params;
 
+  console.log(preschoolId);
+
   try {
     const preschool = await Preschool.findById(preschoolId);
 
@@ -31,7 +33,7 @@ exports.getPreschools = async (req, res, next) => {
   try {
     const preschools = await Preschool.find().skip(skip).limit(limit);
 
-    res.status(200).json({ preschools });
+    res.status(200).json(preschools);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -45,7 +47,7 @@ exports.getPreschoolsCount = async (req, res, next) => {
   try {
     const count = await Preschool.countDocuments();
 
-    res.status(200).json({ count });
+    res.status(200).json(count);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

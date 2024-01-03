@@ -26,13 +26,10 @@ router.post(
   '/preschools',
   isAuth,
   isAdmin,
-  body(['name', 'district']).trim(),
-  body('name')
-    .notEmpty().withMessage('Missing param {name}')
-    .isLength({ min: 3 }).withMessage('{name} param must be of 3 characters length at least'),
-  body('district')
-    .notEmpty().withMessage('Missing param {district}')
-    .isLength({ min: 3 }).withMessage('{district} param must be of 3 characters length at least'),
+  body(['name', 'district'])
+    .trim()
+    .notEmpty().withMessage('Missing parameter')
+    .isLength({ min: 3 }).withMessage('Parameter must be of length 3 at least'),
   controller.createPreschool
 );
 
@@ -40,13 +37,10 @@ router.put(
   '/preschools/:preschoolId',
   isAuth,
   isAdmin,
-  body(['name', 'district']).trim(),
-  body('name')
-    .notEmpty().withMessage('Missing param {name}')
-    .isLength({ min: 3 }).withMessage('{name} param must be of 3 characters length at least'),
-  body('district')
-    .notEmpty().withMessage('Missing param {district}')
-    .isLength({ min: 3 }).withMessage('{district} param must be of 3 characters length at least'),
+  body(['name', 'district'])
+    .trim()
+    .notEmpty().withMessage('Missing parameter')
+    .isLength({ min: 3 }).withMessage('Parameter must be of length 3 at least'),
   controller.updatePreschool
 );
 

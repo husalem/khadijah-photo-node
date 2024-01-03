@@ -1,5 +1,5 @@
 const express = require('express');
-const { body, param } = require('express-validator');
+const { body, check } = require('express-validator');
 
 const controller = require('../controllers/theme.controller');
 const isAuth = require('../middleware/is-auth.middleware');
@@ -26,7 +26,11 @@ router.post(
   '/themes',
   isAuth,
   isAdmin,
-  controller.upload.single('themeImage'),
+  body('title')
+    .trim()
+    .notEmpty().withMessage('Missing parameter')
+    .isLength({ min: 3 }).withMessage('Parameter must be of length 3 at least'),
+  controller.uploadImage.single('themeImage'),
   controller.createTheme
 );
 
@@ -34,7 +38,7 @@ router.put(
   '/themes/:themeId',
   isAuth,
   isAdmin,
-  controller.upload.single('themeImage'),
+  controller.uploadImage.single('themeImage'),
   controller.updateTheme
 );
 

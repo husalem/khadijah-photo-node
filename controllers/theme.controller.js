@@ -5,11 +5,106 @@ const multer = require('multer');
 
 const Theme = require('../models/theme');
 
-exports.getThemesCount = async (req, res, next) => {};
-exports.getTheme = async (req, res, next) => {};
-exports.getThemes = async (req, res, next) => {};
-exports.createTheme = async (req, res, next) => {};
+exports.getThemesCount = async (req, res, next) => {
+  try {
+    const count = await Theme.countDocuments();
+
+    res.status(200).json(count);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.getTheme = async (req, res, next) => {
+  const { themeId } = req.params;
+
+  try {
+    const theme = await Theme.findById(themeId);
+
+    if (!theme) {
+      const error = new Error('Theme does not exist');
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    res.status(200).json(theme);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.getThemes = async (req, res, next) => {
+  const { skip, limit } = req.query;
+
+  try {
+    const themes = await Theme.find().skip(skip).limit(limit);
+
+    res.status(200).json(themes);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.createTheme = async (req, res, next) => {
+  const themeImage = req.file;
+  const input = req.body;
+  const errors = validationResult(req);
+
+  try {
+    if (!themeImage) {
+      const error = new Error('Missing image file');
+      error.statusCode = 400;
+
+      throw error;
+    }
+
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+  
+      throw error;
+    }
+
+    const tags = input.tags ? input.tags.split(',') : [];
+
+    const themeObj = new Theme({ imagePath: themeImage.path, ...input, tags });
+
+    const theme = await themeObj.save();
+
+    res.status(201).json(theme);
+  } catch (error) {
+    // Delete file if uploaded in case of error
+    if (themeImage && fs.existsSync(themeImage.path)) {
+      fs.unlinkSync(themeImage.path);
+    }
+
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
 exports.updateTheme = async (req, res, next) => {};
+
 exports.deleteTheme = async (req, res, next) => {};
 
 // Setup storage location for uploaded files
@@ -42,4 +137,4 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-exports.upload = multer({ storage, fileFilter });
+exports.uploadImage = multer({ storage, fileFilter });
