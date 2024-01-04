@@ -73,18 +73,16 @@ exports.createTheme = async (req, res, next) => {
 
     if (!errors.isEmpty()) {
       const validationErr = errors.array().shift();
-      const { msg, path, value } = validationErr
+      const { msg, path, value } = validationErr;
       const error = new Error(msg);
 
       error.statusCode = 400;
       error.data = { path, value };
-  
+
       throw error;
     }
 
-    const tags = input.tags ? 
-      input.tags.split(',').map(tag => tag.trim())
-      : [];
+    const tags = input.tags ? input.tags.split(',').map((tag) => tag.trim()) : [];
 
     const themeObj = new Theme({ imagePath: themeImage.path, ...input, tags });
 
@@ -114,12 +112,12 @@ exports.updateTheme = async (req, res, next) => {
   try {
     if (!errors.isEmpty()) {
       const validationErr = errors.array().shift();
-      const { msg, path, value } = validationErr
+      const { msg, path, value } = validationErr;
       const error = new Error(msg);
 
       error.statusCode = 400;
       error.data = { path, value };
-  
+
       throw error;
     }
 
@@ -135,9 +133,7 @@ exports.updateTheme = async (req, res, next) => {
       loadedTheme.imagePath = themeImage.path;
     }
 
-    const tags = input.tags ? 
-      input.tags.split(',').map(tag => tag.trim())
-      : [];
+    const tags = input.tags ? input.tags.split(',').map((tag) => tag.trim()) : [];
 
     const themeObj = new Theme({ ...loadedTheme, ...input, tags });
 
@@ -181,10 +177,8 @@ const storage = multer.diskStorage({
 
 // Setup uploaded file filter
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'image/png' ||
-      file.mimetype === 'image/jpg' ||
-      file.mimetype === 'image/jpeg') {
-    cb(null, true)
+  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+    cb(null, true);
   } else {
     cb(null, false);
   }

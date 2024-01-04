@@ -64,7 +64,7 @@ exports.createKindergarten = async (req, res, next) => {
   try {
     if (!errors.isEmpty()) {
       const validationErr = errors.array().shift();
-      const { msg, path, value } = validationErr
+      const { msg, path, value } = validationErr;
       const error = new Error(msg);
 
       error.statusCode = 400;
@@ -95,7 +95,7 @@ exports.updateKindergarten = async (req, res, next) => {
   try {
     if (!errors.isEmpty()) {
       const validationErr = errors.array().shift();
-      const { msg, path, value } = validationErr
+      const { msg, path, value } = validationErr;
       const error = new Error(msg);
 
       error.statusCode = 400;

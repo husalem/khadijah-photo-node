@@ -12,7 +12,7 @@ exports.createVerification = async (req, res, next) => {
   try {
     if (!errors.isEmpty()) {
       const validationErr = errors.array().shift();
-      const { msg, path, value } = validationErr
+      const { msg, path, value } = validationErr;
       const error = new Error(msg);
 
       error.statusCode = 400;
@@ -65,7 +65,7 @@ exports.checkVerification = async (req, res, next) => {
   try {
     if (!errors.isEmpty()) {
       const validationErr = errors.array().shift();
-      const { msg, path, value } = validationErr
+      const { msg, path, value } = validationErr;
       const error = new Error(msg);
 
       error.statusCode = 400;
@@ -157,7 +157,7 @@ exports.getUser = async (req, res, next) => {
   try {
     if (!errors.isEmpty()) {
       const validationErr = errors.array().shift();
-      const { msg, path, value } = validationErr
+      const { msg, path, value } = validationErr;
       const error = new Error(msg);
 
       error.statusCode = 400;
@@ -203,7 +203,7 @@ exports.userExists = async (req, res, next) => {
   try {
     if (!errors.isEmpty()) {
       const validationErr = errors.array().shift();
-      const { msg, path, value } = validationErr
+      const { msg, path, value } = validationErr;
       const error = new Error(msg);
 
       error.statusCode = 400;
@@ -231,7 +231,7 @@ exports.register = async (req, res, next) => {
   try {
     if (!errors.isEmpty()) {
       const validationErr = errors.array().shift();
-      const { msg, path, value } = validationErr
+      const { msg, path, value } = validationErr;
       const error = new Error(msg);
 
       error.statusCode = 400;
@@ -288,7 +288,7 @@ exports.signin = async (req, res, next) => {
   try {
     if (!errors.isEmpty()) {
       const validationErr = errors.array().shift();
-      const { msg, path, value } = validationErr
+      const { msg, path, value } = validationErr;
       const error = new Error(msg);
 
       error.statusCode = 400;
