@@ -4,25 +4,18 @@ const Schema = mongoose.Schema;
 
 const themeSchema = new Schema(
   {
-    imagePath: {
-      type: String,
-      required: true,
-    },
     title: {
       type: String,
       required: true
     },
     description: String,
-    discount: {
+    additionalCharge: {
       type: Number,
       default: 0
     },
     tags: [String],
+    imagesPaths: [String],
     showInStudio: {
-      type: Boolean,
-      default: true,
-    },
-    active: {
       type: Boolean,
       default: true,
     }

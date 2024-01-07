@@ -2,10 +2,15 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const packageSchema = new Schema(
+const serviceAddsSchema = new Schema(
   {
-    quanitty: {
-      type: Number,
+    name: {
+      type: String,
+      required: true
+    },
+    service: {
+      type: String,
+      enum: ['K', 'O'], // K: Kindergarten, O: Others
       required: true
     },
     discount: {
@@ -21,7 +26,7 @@ const packageSchema = new Schema(
   { timestamps: true }
 );
 
-packageSchema.pre('save', (next) => {
+serviceAddsSchema.pre('save', (next) => {
   if (this.discount) {
     this.netPrice = this.price - (this.price * this.discount) / 100;
   }
@@ -29,4 +34,4 @@ packageSchema.pre('save', (next) => {
   next();
 });
 
-module.exports = mongoose.model('Package', packageSchema);
+module.exports = mongoose.model('ServiceAdds', serviceAddsSchema);
