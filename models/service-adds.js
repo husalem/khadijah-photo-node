@@ -26,7 +26,9 @@ const serviceAddsSchema = new Schema(
   { timestamps: true }
 );
 
-serviceAddsSchema.pre('save', (next) => {
+serviceAddsSchema.pre('save', function (next) {
+  this.netPrice = this.price;
+  
   if (this.discount) {
     this.netPrice = this.price - (this.price * this.discount) / 100;
   }

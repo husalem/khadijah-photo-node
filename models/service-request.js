@@ -45,7 +45,7 @@ const requestSchema = new Schema(
 
 requestSchema.pre(
   'save',
-  async (next) => {
+  async function (next) {
     let theme;
     let additions = [];
 

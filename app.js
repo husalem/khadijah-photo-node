@@ -11,6 +11,7 @@ const serverError = require('./middleware/server-error.middleware');
 const authRoute = require('./routes/auth.route');
 const kindergartenRoute = require('./routes/kindergarten.route');
 const themeRoute = require('./routes/theme.route');
+const packageRoute = require('./routes/package.route');
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use(express.static(path.join(__dirname, 'assets')));
 app.use(authRoute);
 app.use(kindergartenRoute);
 app.use(themeRoute);
+app.use(packageRoute);
 
 // Resource not found handler
 app.use(notFound);

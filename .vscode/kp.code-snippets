@@ -85,7 +85,7 @@
 			"	const { skip, limit } = req.query;\n",
 			"	try {",
 			"		const $2s = await $1.find().skip(skip).limit(limit);\n",
-			"		res.status(200).json(themes);",
+			"		res.status(200).json($2s);",
 			"	} catch (error) {",
 			"		if (!error.statusCode) {",
 			"			error.statusCode = 500;",

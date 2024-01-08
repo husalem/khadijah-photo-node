@@ -47,7 +47,7 @@ const serviceSchema = new Schema(
 
 requestSchema.pre(
   'save',
-  async (next) => {
+  async function (next) {
     let additions = [];
 
     if (this.additions?.length) {

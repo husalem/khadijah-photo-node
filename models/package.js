@@ -4,7 +4,8 @@ const Schema = mongoose.Schema;
 
 const packageSchema = new Schema(
   {
-    quanitty: {
+    name: String,
+    quantity: {
       type: Number,
       required: true
     },
@@ -21,9 +22,13 @@ const packageSchema = new Schema(
   { timestamps: true }
 );
 
-packageSchema.pre('save', (next) => {
-  if (this.discount) {
-    this.netPrice = this.price - (this.price * this.discount) / 100;
+packageSchema.pre(['save', 'updateOne'], function (next) {
+  let package = this.op === 'updateOne' ? this._update : this;
+
+  package.netPrice = package.price;
+
+  if (package.discount) {
+    package.netPrice = package.price - (package.price * package.discount) / 100;
   }
 
   next();
