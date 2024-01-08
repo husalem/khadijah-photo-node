@@ -1,10 +1,10 @@
 const { validationResult } = require('express-validator');
 
-const Package = require('../models/package');
+const PaperSize = require('../models/paper-size');
 
-exports.getPackagesCount = async (req, res, next) => {
+exports.getPaperSizesCount = async (req, res, next) => {
   try {
-    const count = await Package.countDocuments();
+    const count = await PaperSize.countDocuments();
 
     res.status(200).json(count);
   } catch (error) {
@@ -16,20 +16,20 @@ exports.getPackagesCount = async (req, res, next) => {
   }
 };
 
-exports.getPackage = async (req, res, next) => {
-  const { packageId } = req.params;
+exports.getPaperSize = async (req, res, next) => {
+  const { paperSizeId } = req.params;
 
   try {
-    const package = await Package.findById(packageId);
+    const paperSize = await PaperSize.findById(paperSizeId);
 
-    if (!package) {
-      const error = new Error('Package does not exist');
+    if (!paperSize) {
+      const error = new Error('Paper size does not exist');
       error.statusCode = 404;
 
       throw error;
     }
 
-    res.status(200).json(package);
+    res.status(200).json(paperSize);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -39,13 +39,13 @@ exports.getPackage = async (req, res, next) => {
   }
 };
 
-exports.getPackages = async (req, res, next) => {
+exports.getPaperSizes = async (req, res, next) => {
   const { skip, limit } = req.query;
 
   try {
-    const packages = await Package.find().skip(skip).limit(limit);
+    const paperSizes = await PaperSize.find().skip(skip).limit(limit);
 
-    res.status(200).json(packages);
+    res.status(200).json(paperSizes);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -54,7 +54,7 @@ exports.getPackages = async (req, res, next) => {
     next(error);
   }
 };
-exports.createPackage = async (req, res, next) => {
+exports.createPaperSize = async (req, res, next) => {
   const input = req.body;
   const errors = validationResult(req);
 
@@ -70,12 +70,12 @@ exports.createPackage = async (req, res, next) => {
       throw error;
     }
 
-    const packageObj = new Package({ ...input });
+    const paperSizeObj = new PaperSize({ ...input });
 
-    const package = await packageObj.save();
+    const paperSize = await paperSizeObj.save();
 
 
-    res.status(201).json(package);
+    res.status(201).json(paperSize);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -85,8 +85,8 @@ exports.createPackage = async (req, res, next) => {
   }
 };
 
-exports.updatePackage = async (req, res, next) => {
-  const { packageId } = req.params;
+exports.updatePaperSize = async (req, res, next) => {
+  const { paperSizeId } = req.params;
   const input = req.body;
   const errors = validationResult(req);
 
@@ -102,10 +102,10 @@ exports.updatePackage = async (req, res, next) => {
       throw error;
     }
 
-    const result = await Package.updateOne({ _id: packageId }, { ...input });
+    const result = await PaperSize.updateOne({ _id: paperSizeId }, { ...input });
 
     if (!result.matchedCount) {
-      const error = new Error('Package does not exist');
+      const error = new Error('Paper size does not exist');
       error.statusCode = 404;
 
       throw error;
@@ -121,13 +121,13 @@ exports.updatePackage = async (req, res, next) => {
   }
 };
 
-exports.deletePackage = async (req, res, next) => {
-  const { packageId } = req.params;
+exports.deletePaperSize = async (req, res, next) => {
+  const { paperSizeId } = req.params;
 
   try {
-    await Package.deleteOne({ _id: packageId });
+    await PaperSize.deleteOne({ _id: paperSizeId });
 
-    res.status(201).json({ message: 'Package was deleted' });
+    res.status(201).json({ message: 'Paper size was deleted' });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

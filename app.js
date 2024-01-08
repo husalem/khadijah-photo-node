@@ -12,6 +12,8 @@ const authRoute = require('./routes/auth.route');
 const kindergartenRoute = require('./routes/kindergarten.route');
 const themeRoute = require('./routes/theme.route');
 const packageRoute = require('./routes/package.route');
+const serviceAddRoute = require('./routes/service-adds.route');
+const paperSizeRoute = require('./routes/paper-size.route');
 
 const app = express();
 
@@ -35,6 +37,8 @@ app.use(authRoute);
 app.use(kindergartenRoute);
 app.use(themeRoute);
 app.use(packageRoute);
+app.use(serviceAddRoute);
+app.use(paperSizeRoute);
 
 // Resource not found handler
 app.use(notFound);

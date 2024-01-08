@@ -26,11 +26,13 @@ const serviceAddsSchema = new Schema(
   { timestamps: true }
 );
 
-serviceAddsSchema.pre('save', function (next) {
-  this.netPrice = this.price;
-  
-  if (this.discount) {
-    this.netPrice = this.price - (this.price * this.discount) / 100;
+serviceAddsSchema.pre(['save', 'updateOne'], function (next) {
+  let addition = this.op === 'updateOne' ? this._update : this;
+
+  addition.netPrice = addition.price;
+
+  if (addition.discount) {
+    addition.netPrice = addition.price - (addition.price * addition.discount) / 100;
   }
 
   next();

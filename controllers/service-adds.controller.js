@@ -1,10 +1,10 @@
 const { validationResult } = require('express-validator');
 
-const Package = require('../models/package');
+const ServiceAdd = require('../models/service-adds');
 
-exports.getPackagesCount = async (req, res, next) => {
+exports.getServiceAddsCount = async (req, res, next) => {
   try {
-    const count = await Package.countDocuments();
+    const count = await ServiceAdd.countDocuments();
 
     res.status(200).json(count);
   } catch (error) {
@@ -16,20 +16,20 @@ exports.getPackagesCount = async (req, res, next) => {
   }
 };
 
-exports.getPackage = async (req, res, next) => {
-  const { packageId } = req.params;
+exports.getServiceAdd = async (req, res, next) => {
+  const { serviceAddId } = req.params;
 
   try {
-    const package = await Package.findById(packageId);
+    const addition = await ServiceAdd.findById(serviceAddId);
 
-    if (!package) {
-      const error = new Error('Package does not exist');
+    if (!addition) {
+      const error = new Error('Service-add does not exist');
       error.statusCode = 404;
 
       throw error;
     }
 
-    res.status(200).json(package);
+    res.status(200).json(addition);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -39,13 +39,19 @@ exports.getPackage = async (req, res, next) => {
   }
 };
 
-exports.getPackages = async (req, res, next) => {
-  const { skip, limit } = req.query;
+exports.getServiceAdds = async (req, res, next) => {
+  const { addType, skip, limit } = req.query;
+
+  let query = {};
+
+  if (addType && (addType === 'K' || addType === 'O')) {
+    query.service = addType;
+  }
 
   try {
-    const packages = await Package.find().skip(skip).limit(limit);
+    const additions = await ServiceAdd.find(query).skip(skip).limit(limit);
 
-    res.status(200).json(packages);
+    res.status(200).json(additions);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -54,7 +60,7 @@ exports.getPackages = async (req, res, next) => {
     next(error);
   }
 };
-exports.createPackage = async (req, res, next) => {
+exports.createServiceAdd = async (req, res, next) => {
   const input = req.body;
   const errors = validationResult(req);
 
@@ -70,12 +76,12 @@ exports.createPackage = async (req, res, next) => {
       throw error;
     }
 
-    const packageObj = new Package({ ...input });
+    const additionObj = new ServiceAdd({ ...input });
 
-    const package = await packageObj.save();
+    const addition = await additionObj.save();
 
 
-    res.status(201).json(package);
+    res.status(201).json(addition);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -85,8 +91,8 @@ exports.createPackage = async (req, res, next) => {
   }
 };
 
-exports.updatePackage = async (req, res, next) => {
-  const { packageId } = req.params;
+exports.updateServiceAdd = async (req, res, next) => {
+  const { serviceAddId } = req.params;
   const input = req.body;
   const errors = validationResult(req);
 
@@ -102,10 +108,10 @@ exports.updatePackage = async (req, res, next) => {
       throw error;
     }
 
-    const result = await Package.updateOne({ _id: packageId }, { ...input });
+    const result = await ServiceAdd.updateOne({ _id: serviceAddId }, { ...input });
 
     if (!result.matchedCount) {
-      const error = new Error('Package does not exist');
+      const error = new Error('Service-add does not exist');
       error.statusCode = 404;
 
       throw error;
@@ -121,13 +127,13 @@ exports.updatePackage = async (req, res, next) => {
   }
 };
 
-exports.deletePackage = async (req, res, next) => {
-  const { packageId } = req.params;
+exports.deleteServiceAdd = async (req, res, next) => {
+  const { serviceAddId } = req.params;
 
   try {
-    await Package.deleteOne({ _id: packageId });
+    await ServiceAdd.deleteOne({ _id: serviceAddId });
 
-    res.status(201).json({ message: 'Package was deleted' });
+    res.status(201).json({ message: 'Service-add was deleted' });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
