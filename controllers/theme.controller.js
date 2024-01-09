@@ -194,7 +194,29 @@ exports.deleteTheme = async (req, res, next) => {
   const { themeId } = req.params;
 
   try {
-    await Theme.deleteOne({ _id: themeId });
+    const theme = await Theme.findById(themeId);
+
+    if (!theme) {
+      const error = new Error('Theme does not exist');
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    theme.imagesPaths.map((imagePath) => {
+      if (fs.existsSync(imagePath)) {
+        fs.unlink(imagePath, (error) => {
+          if (error) {
+            console.log(
+              `Theme image ${imagePath} should have been deleted and it has not due to an error.`
+            );
+          }
+        });
+      }
+    });
+
+    await theme.deleteOne();
+    // await Theme.deleteOne({ _id: themeId });
 
     res.status(201).json({ message: 'Theme was deleted' });
   } catch (error) {

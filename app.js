@@ -15,6 +15,7 @@ const packageRoute = require('./routes/package.route');
 const serviceAddRoute = require('./routes/service-adds.route');
 const paperSizeRoute = require('./routes/paper-size.route');
 const serviceTypeRoute = require('./routes/service-type.route');
+const costumRoute = require('./routes/costum.route');
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use(packageRoute);
 app.use(serviceAddRoute);
 app.use(paperSizeRoute);
 app.use(serviceTypeRoute);
+app.use(costumRoute);
 
 // Resource not found handler
 app.use(notFound);

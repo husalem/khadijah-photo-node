@@ -161,7 +161,25 @@ exports.deleteServiceType = async (req, res, next) => {
   const { serviceTypeId } = req.params;
 
   try {
-    await ServiceType.deleteOne({ _id: serviceTypeId });
+    const serviceType = await ServiceType.findById(serviceTypeId);
+
+    if (!serviceType) {
+      const error = new Error('Service type does not exist');
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    if (fs.existsSync(serviceType.thumbnail)) {
+      fs.unlink(serviceType.thumbnail, (error) => {
+        if (error) {
+          console.log(`Service type ${serviceType.thumbnail} should have been deleted and it has not due to an error.`);
+        }
+      });
+    }
+
+    await serviceType.deleteOne();
+    // await ServiceType.deleteOne({ _id: serviceTypeId });
 
     res.status(201).json({ message: 'Service type was deleted' });
   } catch (error) {

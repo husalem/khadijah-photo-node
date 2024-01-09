@@ -16,7 +16,7 @@ const costumSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'PaperSize'
     }],
-    tags: [String],
+    tags: String,
     withFriend: {
       type: Boolean,
       default: false
