@@ -13,6 +13,7 @@ const serviceAddsSchema = new Schema(
       enum: ['K', 'O'], // K: Kindergarten, O: Others
       required: true
     },
+    perItem: Boolean,
     discount: {
       type: Number,
       default: 0

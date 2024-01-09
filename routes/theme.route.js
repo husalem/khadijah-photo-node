@@ -26,7 +26,7 @@ router.post(
   '/themes',
   isAuth,
   isAdmin,
-  controller.uploadImage.single('themeImage'),
+  controller.uploadImages,
   body('title')
     .trim()
     .notEmpty().withMessage('Missing parameter')
@@ -38,7 +38,7 @@ router.put(
   '/themes/:themeId',
   isAuth,
   isAdmin,
-  controller.uploadImage.single('themeImage'),
+  controller.uploadImages,
   body('title')
     .trim()
     .notEmpty().withMessage('Missing parameter')

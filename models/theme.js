@@ -13,7 +13,7 @@ const themeSchema = new Schema(
       type: Number,
       default: 0
     },
-    tags: [String],
+    tags: String,
     imagesPaths: [String],
     showInStudio: {
       type: Boolean,

@@ -1,9 +1,9 @@
 const fs = require('fs');
 
 const { validationResult } = require('express-validator');
-const multer = require('multer');
 
 const Theme = require('../models/theme');
+const utils = require('../utils');
 
 exports.getThemesCount = async (req, res, next) => {
   try {
@@ -59,13 +59,13 @@ exports.getThemes = async (req, res, next) => {
 };
 
 exports.createTheme = async (req, res, next) => {
-  const themeImage = req.file;
-  const input = req.body;
+  const themeImages = req.files || [];
+  let input = req.body;
   const errors = validationResult(req);
 
   try {
-    if (!themeImage) {
-      const error = new Error('Missing image file');
+    if (!themeImages.length) {
+      const error = new Error('Missing theme images');
       error.statusCode = 400;
 
       throw error;
@@ -82,18 +82,26 @@ exports.createTheme = async (req, res, next) => {
       throw error;
     }
 
-    const tags = input.tags ? input.tags.split(',').map((tag) => tag.trim()) : [];
+    input.imagesPaths = themeImages.map((image) => image.path);
 
-    const themeObj = new Theme({ imagePath: themeImage.path, ...input, tags });
+    const themeObj = new Theme({ ...input });
 
     const theme = await themeObj.save();
 
     res.status(201).json(theme);
   } catch (error) {
     // Delete file if uploaded in case of error
-    if (themeImage && fs.existsSync(themeImage.path)) {
-      fs.unlink(themeImage.path);
-    }
+    themeImages.map((themeImage) => {
+      if (themeImage && fs.existsSync(themeImage.path)) {
+        fs.unlink(themeImage.path, (error) => {
+          if (error) {
+            console.log(
+              `Theme image ${themeImage.path} should have been deleted and it has not due to an error.`
+            );
+          }
+        });
+      }
+    });
 
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -105,11 +113,18 @@ exports.createTheme = async (req, res, next) => {
 
 exports.updateTheme = async (req, res, next) => {
   const { themeId } = req.params;
-  const themeImage = req.file;
-  const input = req.body;
+  const themeImages = req.files || [];
+  let input = req.body;
   const errors = validationResult(req);
 
   try {
+    if (!themeImages.length) {
+      const error = new Error('Missing theme images');
+      error.statusCode = 400;
+
+      throw error;
+    }
+
     if (!errors.isEmpty()) {
       const validationErr = errors.array().shift();
       const { msg, path, value } = validationErr;
@@ -122,29 +137,50 @@ exports.updateTheme = async (req, res, next) => {
     }
 
     let loadedTheme = await Theme.findById(themeId);
-
-    // If file was uploaded, delete the old file
-    if (themeImage) {
-      if (fs.existsSync(loadedTheme.imagePath)) {
-        fs.unlink(loadedTheme.imagePath);
-      }
-
-      // Update the path
-      loadedTheme.imagePath = themeImage.path;
+    
+    // If file was uploaded, delete the old files
+    if (themeImages.length) {
+      loadedTheme.imagesPaths.map((imagePath) => {
+        if (fs.existsSync(imagePath)) {
+          fs.unlink(imagePath, (error) => {
+            if (error) {
+              console.log(
+                `Theme image ${imagePath} should have been deleted and it has not due to an error.`
+              );
+            }
+  
+            console.log(`Theme image ${imagePath} was replaced`);
+          });
+        }
+      });
+      
+      // Update the paths
+      input.imagesPaths = themeImages.map((image) => image.path);
     }
 
-    const tags = input.tags ? input.tags.split(',').map((tag) => tag.trim()) : [];
+    const result = await Theme.updateOne({ _id: themeId }, { ...input });
 
-    const themeObj = new Theme({ ...loadedTheme, ...input, tags });
+    if (!result.matchedCount) {
+      const error = new Error('Theme does not exist');
+      error.statusCode = 404;
 
-    const theme = await themeObj.save();
+      throw error;
+    }
 
-    res.status(201).json(theme);
+    res.status(201).json(result);
   } catch (error) {
     // Delete file if uploaded in case of error
-    if (themeImage && fs.existsSync(themeImage.path)) {
-      fs.unlinkSync(themeImage.path);
-    }
+    themeImages.map((themeImage) => {
+      if (themeImage && fs.existsSync(themeImage.path)) {
+        fs.unlink(themeImage.path, (error) => {
+          if (error) {
+            console.log(
+              `Theme image ${themeImage.path} should have been deleted and it has not due to an error.`
+            );
+          }
+        });
+      }
+    });
 
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -154,34 +190,22 @@ exports.updateTheme = async (req, res, next) => {
   }
 };
 
-exports.deleteTheme = async (req, res, next) => {};
+exports.deleteTheme = async (req, res, next) => {
+  const { themeId } = req.params;
 
-// Setup storage location for uploaded files
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = 'assets/themes/';
+  try {
+    await Theme.deleteOne({ _id: themeId });
 
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+    res.status(201).json({ message: 'Theme was deleted' });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
     }
 
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const original = file.originalname;
-    const fileName = Date.now() + '-' + original;
-
-    cb(null, fileName);
-  }
-});
-
-// Setup uploaded file filter
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
-    cb(null, true);
-  } else {
-    cb(null, false);
+    next(error);
   }
 };
 
-exports.uploadImage = multer({ storage, fileFilter });
+exports.uploadImages = utils
+  .getMulterConfig('assets/themes', ['image/png', 'image/jpg', 'image/jpeg'])
+  .array('themeImage');

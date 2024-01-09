@@ -107,7 +107,6 @@
 			"		}\n",
 			"		const $2Obj = new $1({ ...input });\n",
 			"		const $2 = await $2Obj.save();\n",
-			"",
 			"		res.status(201).json($2);",
 			"	} catch (error) {",
 			"		if (!error.statusCode) {",
