@@ -5,8 +5,6 @@ const Kindergarten = require('../models/kindergarten');
 exports.getKindergarten = async (req, res, next) => {
   const { kindergartenId } = req.params;
 
-  console.log(kindergartenId);
-
   try {
     const kindergarten = await Kindergarten.findById(kindergartenId);
 
@@ -69,7 +67,7 @@ exports.createKindergarten = async (req, res, next) => {
 
       error.statusCode = 400;
       error.data = { path, value };
-  
+
       throw error;
     }
 
@@ -89,7 +87,7 @@ exports.createKindergarten = async (req, res, next) => {
 
 exports.updateKindergarten = async (req, res, next) => {
   const { kindergartenId } = req.params;
-  const { name, district } = req.body;
+  const input = req.body;
   const errors = validationResult(req);
 
   try {
@@ -100,25 +98,20 @@ exports.updateKindergarten = async (req, res, next) => {
 
       error.statusCode = 400;
       error.data = { path, value };
-  
+
       throw error;
     }
 
-    let loadedKindergarten = await Kindergarten.findById(kindergartenId);
+    let result = await Kindergarten.updateOne({ _id: kindergartenId }, { ...input });
 
-    if (!loadedKindergarten) {
+    if (!result.matchedCount) {
       const error = new Error('Kindergarten does not exist');
       error.statusCode = 404;
 
       throw error;
     }
 
-    loadedKindergarten.name = name;
-    loadedKindergarten.district = district;
-
-    await loadedKindergarten.save();
-
-    res.status(201).json(loadedKindergarten);
+    res.status(201).json(result);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -132,7 +125,7 @@ exports.deleteKindergarten = async (req, res, next) => {
   const { kindergartenId } = req.params;
 
   try {
-    await Kindergarten.findByIdAndUpdate(kindergartenId, { active: false });
+    await Kindergarten.deleteOne({ _id: kindergartenId });
 
     res.status(201).json({ message: 'Kindergarten was deleted' });
   } catch (error) {

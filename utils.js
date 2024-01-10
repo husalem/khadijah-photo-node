@@ -14,7 +14,7 @@ exports.getMulterConfig = (dir, filters) => {
     },
     filename: (req, file, cb) => {
       const original = file.originalname;
-      const fileName = Date.now() + '-' + (Math.random() * 10).toFixed(0) + original;
+      const fileName = (Math.random() * 10).toFixed(0) + Date.now() + '-' + original;
 
       cb(null, fileName);
     }

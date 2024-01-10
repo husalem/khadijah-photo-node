@@ -44,26 +44,31 @@ const requestSchema = new Schema(
 );
 
 requestSchema.pre(
-  'save',
+  ['save', 'updateOne'],
   async function (next) {
     let theme;
     let additions = [];
 
-    if (this.theme) {
-      theme = await Theme.findById(this.theme);
+    let request = this.op === 'updateOne' ? this._update : this;
+
+    if (request.theme) {
+      theme = await Theme.findById(request.theme);
     }
 
-    if (this.additions?.length) {
-      const additionsIds = this.additions.map((objectId) => objectId._id);
-      additions = await Addition.find({ _id: { $in: additionsIds } });
+    if (request.additions?.length) {
+      // const additionsIds = request.additions.map((objectId) => objectId._id);
+      additions = await Addition.find({ _id: { $in: request.additions } });
     }
 
-    const package = await Package.findById(this.package);
+    const package = await Package.findById(request.package);
 
     // Calculate additional services prices
     const addsPrice = additions.reduce((total, service) => total + service.netPrice, 0);
 
-    this.netPrice = theme.additionalCharge + addsPrice + package.netPrice;
+    // If theme is supplied, get its charge
+    const themePrice = theme ? theme.additionalCharge : 0;
+
+    request.netPrice = themePrice + addsPrice + package.netPrice;
 
     next();
   }
