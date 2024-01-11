@@ -46,10 +46,10 @@ const requestSchema = new Schema(
 requestSchema.pre(
   ['save', 'updateOne'],
   async function (next) {
+    let request = this.op === 'updateOne' ? this._update : this;
+    
     let theme;
     let additions = [];
-
-    let request = this.op === 'updateOne' ? this._update : this;
 
     if (request.theme) {
       theme = await Theme.findById(request.theme);
