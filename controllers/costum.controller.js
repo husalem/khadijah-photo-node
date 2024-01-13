@@ -23,7 +23,8 @@ exports.getCostum = async (req, res, next) => {
   const { costumId } = req.params;
 
   try {
-    const costum = await Costum.findById(costumId);
+    const costum = await Costum.findById(costumId)
+      .populate('sizes', ['size', 'netPrice']);
 
     if (!costum) {
       const error = new Error('Costum does not exist');

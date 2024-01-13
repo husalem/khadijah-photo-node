@@ -17,6 +17,7 @@ const paperSizeRoute = require('./routes/paper-size.route');
 const serviceTypeRoute = require('./routes/service-type.route');
 const costumRoute = require('./routes/costum.route');
 const serviceReqRoute = require('./routes/service-request.route');
+const kinderReqRoute = require('./routes/kindergarten-request.route');
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use(paperSizeRoute);
 app.use(serviceTypeRoute);
 app.use(costumRoute);
 app.use(serviceReqRoute);
+app.use(kinderReqRoute);
 
 // Resource not found handler
 app.use(notFound);

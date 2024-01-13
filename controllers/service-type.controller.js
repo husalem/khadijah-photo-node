@@ -23,7 +23,17 @@ exports.getServiceType = async (req, res, next) => {
   const { serviceTypeId } = req.params;
 
   try {
-    const serviceType = await ServiceType.findById(serviceTypeId);
+    const serviceType = await ServiceType.findById(serviceTypeId)
+      .populate([
+        {
+          path: 'themes',
+          select: ['title', 'description', 'additionalCharge', 'imagesPaths']
+        },
+        {
+          path: 'packages',
+          select: ['name', 'quantity', 'netPrice']
+        }
+      ]);
 
     if (!serviceType) {
       const error = new Error('Service type does not exist');

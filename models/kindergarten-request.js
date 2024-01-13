@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-const Costum = require('./costum');
 const PaperSize = require('./paper-size');
 const Addition = require('./service-adds');
 
@@ -10,11 +9,13 @@ const serviceSchema = new Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
+      required: true
     },
     kindergarten: {
       type: Schema.Types.ObjectId,
-      ref: 'Kindergarten'
+      ref: 'Kindergarten',
+      required: true
     },
     costums: [
       {
@@ -36,6 +37,10 @@ const serviceSchema = new Schema(
         ]
       }
     ],
+    childName: {
+      type: String,
+      required: true
+    },
     friendName: String,
     firendBackup: String,
     remarks: String,
@@ -56,7 +61,7 @@ const serviceSchema = new Schema(
   { timestamps: true }
 );
 
-requestSchema.pre(['save', 'updateOne'], async function (next) {
+serviceSchema.pre(['save', 'updateOne'], async function (next) {
   let request = this.op === 'updateOne' ? this._update : this;
 
   let sizesIdsSet = new Set();
@@ -104,9 +109,15 @@ requestSchema.pre(['save', 'updateOne'], async function (next) {
     const sizeId = costum.size instanceof mongoose.Types.ObjectId ? 
       costum.size._id.toString() : costum.size;
     
-    sizePrice = sizes.find((size) => size === sizeId);
+    const sizePrice = sizes.find((size) => size._id.toString() === sizeId)?.netPrice || 0;
+    const costAddsPrice = costum.additions?.reduce((total, addition) => {
+      const additionId = addition instanceof mongoose.Types.ObjectId ? 
+        addition._id.toString() : addition;
+      
+      return total + costAdds.find((add) => add._id.toString() === additionId)?.netPrice;
+    }, 0) || 0;
 
-    return total + sizePrice;
+    return total + sizePrice + costAddsPrice;
   }, 0);
 
   // Calculate additional services prices
@@ -117,4 +128,4 @@ requestSchema.pre(['save', 'updateOne'], async function (next) {
   next();
 });
 
-module.exports = mongoose.model('KindergartenService', serviceSchema);
+module.exports = mongoose.model('KindergartenRequest', serviceSchema);
