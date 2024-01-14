@@ -14,6 +14,8 @@ const serviceAddsSchema = new Schema(
       required: true
     },
     perItem: Boolean,
+    conditional: Boolean,
+    numOfImgCondition: Number,
     discount: {
       type: Number,
       default: 0
