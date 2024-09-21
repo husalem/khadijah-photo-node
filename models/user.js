@@ -22,7 +22,15 @@ const userSchema = new Schema(
         ref: 'Order'
       }
     ],
-    lastLogin: Date
+    lastLogin: Date,
+    verificationSent: {
+      type: Boolean,
+      default: false
+    },
+    verificationTime: {
+      type: Number,
+      default: 0
+    }
   },
   { timestamps: true }
 );

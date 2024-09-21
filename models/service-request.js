@@ -13,6 +13,7 @@ const requestSchema = new Schema(
       ref: 'User',
       required: true
     },
+    clientName: String,
     type: {
       type: String,
       required: true

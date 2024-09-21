@@ -57,7 +57,7 @@ app.use(serverError);
 // MongoDB connection string config
 const { mongo } = JSON.parse(process.env.APP_CONFIG || '{}');
 const USERNAME = mongo.user;
-const PASSWORD = mongo.password;
+const PASSWORD = process.env.MONGO_PASSWORD;
 
 // MongoDB URI
 const connection = `${process.env.development ? 'mongodb+srv' : 'mongodb'}://${USERNAME}:${encodeURIComponent(PASSWORD)}@${mongo.hostString}`;

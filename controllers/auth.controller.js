@@ -28,11 +28,41 @@ exports.createVerification = async (req, res, next) => {
 
     const phoneNumber = `+${countryCode || '966'}${phone}`;
 
+    // Check if user exists, otherwise create one
+    let user = await User.findOne({ phone });
+
+    if (!user) {
+      user = new User({
+        phone,
+        verificationSent: true, 
+        verificationTime: Date.now()
+      });
+    } else {
+      user.verificationSent = true;
+      user.verificationTime = Date.now();
+    }
+    
+    await user.save();
+
+    // Reset verification after 5 minutes
+    setTimeout(() => {
+      user.verificationSent = false;
+      user.verificationTime = 0;
+
+      user.save();
+    }, 300000);
+
     /************** IN DEVELOPMENT, NO NEED TO SEND SMS **************/
     if (process.env.development) {
       return res.status(200)
-        .json({ message: 'Development', status: 'Sent' });
+        .json({
+          message: 'Development',
+          status: 'Sent',
+          userId: user._id.toString(),
+          phone: user.phone
+        });
     }
+   /******************************************************************/
 
     const verification = await client.verify.v2
       .services(process.env.TWILIO_SRV_SID)
@@ -81,11 +111,50 @@ exports.checkVerification = async (req, res, next) => {
 
     const phoneNumber = `+${countryCode || '966'}${phone}`;
 
+    // Check if user exists and verification was sent already
+    let user = await User.findOne({ phone });
+
+    if (!user) {
+      const error = new Error('User was not created');
+      error.statusCode = 400;
+
+      throw error;
+    } else if (!user.verificationSent) {
+      const error = new Error('Verification was not sent');
+      error.statusCode = 400;
+
+      throw error;
+    }
+
     /************** IN DEVELOPMENT, NO NEED TO CHECK **************/
     if (process.env.development) {
+      const devToken = jwt.sign(
+        {
+          phone: user.phone,
+          userId: user._id.toString(),
+          userRole: user.role
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: '30d'
+        }
+      );
+
+      // Update verification status
+      user.verificationSent = false;
+      user.verificationTime = 0;
+      await user.save();
+
       return res.status(200)
-        .json({ message: 'Development', status: 'approved' });
+        .json({
+          message: 'Development',
+          status: 'approved',
+          userId: user._id,
+          token: devToken,
+          phone: user.phone
+        });
     }
+    /**************************************************************/
 
     const verification = await client.verify.v2
       .services(process.env.TWILIO_SRV_SID)
@@ -95,13 +164,40 @@ exports.checkVerification = async (req, res, next) => {
         code: code
       });
 
+    if (verification.status !== 'approved') {
+      const error = new Error('Invalid verification code');
+      error.statusCode = 400;
+
+      throw error;
+    }
+
+    // Update verification status
+    user.verificationSent = false;
+    user.verificationTime = 0;
+    await user.save();
+
     io.websocket().emit('auth', {
       to: verification.to, 
       status: verification.status
     });
 
-    res.status(200)
-      .json({ status: verification.status });
+    const token = jwt.sign(
+      {
+        phone: user.phone,
+        userId: user._id.toString(),
+        userRole: user.role
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: '30d'
+      }
+    );
+
+    res.status(201).json({
+      token: token,
+      userId: user._id.toString(),
+      userRole: user.role
+    });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
