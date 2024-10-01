@@ -13,6 +13,7 @@ const serviceAddsSchema = new Schema(
       enum: ['K', 'O'], // K: Kindergarten, O: Others
       required: true
     },
+    description: String,
     perItem: Boolean,
     conditional: Boolean,
     numOfImgCondition: Number,

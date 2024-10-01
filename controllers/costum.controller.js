@@ -23,8 +23,7 @@ exports.getCostum = async (req, res, next) => {
   const { costumId } = req.params;
 
   try {
-    const costum = await Costum.findById(costumId)
-      .populate('sizes', ['size', 'netPrice']);
+    const costum = await Costum.findById(costumId).populate('sizes', ['size', 'netPrice']);
 
     if (!costum) {
       const error = new Error('Costum does not exist');
@@ -47,7 +46,7 @@ exports.getCostums = async (req, res, next) => {
   const { skip, limit } = req.query;
 
   try {
-    const costums = await Costum.find().skip(skip).limit(limit);
+    const costums = await Costum.find().skip(skip).limit(limit).populate('sizes', ['size', 'netPrice']);
 
     res.status(200).json(costums);
   } catch (error) {
@@ -213,5 +212,5 @@ exports.deleteCostum = async (req, res, next) => {
   }
 };
 exports.uploadImage = utils
-  .getMulterConfig('assets/costums', ['image/png', 'image/jpg', 'image/jpeg'])
+  .getMulterConfig('assets/images/costums', ['image/png', 'image/jpg', 'image/jpeg'])
   .single('costumImage');

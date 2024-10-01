@@ -202,5 +202,5 @@ exports.deleteServiceType = async (req, res, next) => {
 };
 
 exports.uploadThumbnail = utils
-  .getMulterConfig('assets/service_types', ['image/png', 'image/jpg', 'image/jpeg'])
+  .getMulterConfig('assets/images/service_types', ['image/png', 'image/jpg', 'image/jpeg'])
   .single('thumbnail');

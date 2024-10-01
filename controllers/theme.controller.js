@@ -229,5 +229,5 @@ exports.deleteTheme = async (req, res, next) => {
 };
 
 exports.uploadImages = utils
-  .getMulterConfig('assets/themes', ['image/png', 'image/jpg', 'image/jpeg'])
+  .getMulterConfig('assets/images/themes', ['image/png', 'image/jpg', 'image/jpeg'])
   .array('themeImage');
