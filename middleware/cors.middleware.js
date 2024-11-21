@@ -11,7 +11,7 @@ module.exports = (req, res, next) => {
   res.setHeader('Access-Control-Allow-Headers', headers);
   res.setHeader('Cross-Origin-Embedder-Policy', embedder);
   res.setHeader('Cross-Origin-Opener-Policy', sameOrigin);
-  res.setHeader('Cross-Origin-Resource-Policy', sameOrigin);
+  // res.setHeader('Cross-Origin-Resource-Policy', sameOrigin);
 
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
