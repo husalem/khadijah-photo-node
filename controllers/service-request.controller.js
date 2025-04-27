@@ -63,12 +63,16 @@ exports.getServiceRequest = async (req, res, next) => {
 };
 
 exports.getServiceRequests = async (req, res, next) => {
-  const { skip, limit } = req.query;
+  const { skip, limit, status } = req.query;
   const { userId, userRole } = req;
   let query = {};
 
   if (userRole !== '0') {
     query.user = userId;
+  }
+
+  if (status) {
+    query.status = status;
   }
 
   try {
