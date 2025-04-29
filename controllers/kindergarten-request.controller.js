@@ -6,8 +6,15 @@ const Costum = require('../models/costum');
 const Addition = require('../models/service-adds');
 
 exports.getRequestsCount = async (req, res, next) => {
+  const { status } = req.query;
+  let query = {};
+
+  if (status) {
+    query.status = status;
+  }
+
   try {
-    const count = await Request.countDocuments();
+    const count = await Request.find(query).countDocuments();
 
     res.status(200).json(count);
   } catch (error) {

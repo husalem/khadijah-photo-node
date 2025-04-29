@@ -6,8 +6,15 @@ const Package = require('../models/package');
 const Addition = require('../models/service-adds');
 
 exports.getServiceRequestsCount = async (req, res, next) => {
+  const { status } = req.query;
+  let query = {};
+
+  if (status) {
+    query.status = status;
+  }
+
   try {
-    const count = await ServiceRequest.countDocuments();
+    const count = await ServiceRequest.find(query).countDocuments();
 
     res.status(200).json(count);
   } catch (error) {
