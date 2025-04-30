@@ -40,7 +40,8 @@ exports.getOrders = async (req, res, next) => {
   const { skip, limit, status } = req.query;
   const { userId } = req;
   let query = {};
-  let start, end = undefined;
+  let start,
+    end = undefined;
 
   if (skip) {
     start = skip;
@@ -62,14 +63,14 @@ exports.getOrders = async (req, res, next) => {
       throw error;
     }
 
-    query.user = userId;
-
     const user = await User.findOne({ _id: userId });
-    const orders = user.orders.reverse().slice(start, end);
+    const orders = user.orders;
+
+    query._id = { $in: orders };
 
     if (orders.length) {
-      const kRequests = await KindergartenRequest.find({ _id: { $in: orders } });
-      const sRequests = await ServiceRequest.find({ _id: { $in: orders } }).populate('type', 'name');
+      const kRequests = await KindergartenRequest.find(query);
+      const sRequests = await ServiceRequest.find(query).populate('type', 'name');
 
       const requests = kRequests
         .map((kItem) => ({
@@ -80,16 +81,20 @@ exports.getOrders = async (req, res, next) => {
           status: kItem.status,
           createdAt: kItem.createdAt
         }))
-        .concat(sRequests.map((sItem) => ({
-          _id: sItem._id,
-          reqType: 'O',
-          title: 'تصوير ' + sItem.type,
-          netPrice: sItem.netPrice,
-          status: sItem.status,
-          createdAt: sItem.createdAt
-        })));
+        .concat(
+          sRequests.map((sItem) => ({
+            _id: sItem._id,
+            reqType: 'O',
+            title: 'تصوير ' + sItem.type,
+            netPrice: sItem.netPrice,
+            status: sItem.status,
+            createdAt: sItem.createdAt
+          }))
+        )
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(start, end);
 
-        res.status(200).json(requests);
+      res.status(200).json(requests);
     } else {
       res.status(200).json([]);
     }
