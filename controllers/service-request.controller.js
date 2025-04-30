@@ -31,21 +31,20 @@ exports.getServiceRequest = async (req, res, next) => {
   const { userId, userRole } = req;
 
   try {
-    const request = await ServiceRequest.findById(requestId)
-      .populate([
-        {
-          path: 'theme',
-          select: ['title', 'description','imagesPaths', 'additionalCharge']
-        },
-        {
-          path: 'package',
-          select: ['name', 'quantity', 'netPrice']
-        },
-        {
-          path: 'additions',
-          select: ['name', 'netPrice']
-        }
-      ]);
+    const request = await ServiceRequest.findById(requestId).populate([
+      {
+        path: 'theme',
+        select: ['title', 'description', 'imagesPaths', 'additionalCharge']
+      },
+      {
+        path: 'package',
+        select: ['name', 'quantity', 'netPrice']
+      },
+      {
+        path: 'additions',
+        select: ['name', 'netPrice']
+      }
+    ]);
 
     if (!request) {
       const error = new Error('Service request does not exist');
@@ -135,7 +134,7 @@ exports.createServiceRequest = async (req, res, next) => {
 
     // Validate service adds
     if (input.additions && Array.isArray(input.additions)) {
-      const additions = await Addition.find({ _id: { $in: input.additions }});
+      const additions = await Addition.find({ _id: { $in: input.additions } });
 
       if (additions.length !== input.additions.length) {
         const error = new Error('One service addition at least does not exist');
@@ -151,6 +150,14 @@ exports.createServiceRequest = async (req, res, next) => {
     const requestObj = new ServiceRequest({ ...input });
 
     const request = await requestObj.save();
+
+    // Update the user orders
+    const user = await User.findOne({ _id: userId });
+
+    if (user) {
+      user.orders.push(request._id.toString());
+      await user.save();
+    }
 
     res.status(201).json(request);
   } catch (error) {
@@ -218,7 +225,7 @@ exports.updateServiceRequest = async (req, res, next) => {
 
     // Validate service adds
     if (input.additions && Array.isArray(input.additions)) {
-      const additions = await Addition.find({ _id: { $in: input.additions }});
+      const additions = await Addition.find({ _id: { $in: input.additions } });
 
       if (additions.length !== input.additions.length) {
         const error = new Error('One service addition at least does not exist');

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 
+const User = require('../models/user');
 const Request = require('../models/kindergarten-request');
 const Costum = require('../models/costum');
 const Addition = require('../models/service-adds');
@@ -31,29 +32,28 @@ exports.getRequest = async (req, res, next) => {
   const { userId, userRole } = req;
 
   try {
-    const request = await Request.findById(requestId)
-      .populate([
-        {
-          path: 'kindergarten',
-          select: ['name', 'district']
-        },
-        {
-          path: 'costums.costum',
-          select: ['title', 'imagePath']
-        },
-        {
-          path: 'costums.size',
-          select: ['size', 'netPrice']
-        },
-        {
-          path: 'costums.additions',
-          select: ['name', 'netPrice']
-        },
-        {
-          path: 'additions',
-          select: ['name', 'netPrice']
-        }
-      ]);
+    const request = await Request.findById(requestId).populate([
+      {
+        path: 'kindergarten',
+        select: ['name', 'district']
+      },
+      {
+        path: 'costums.costum',
+        select: ['title', 'imagePath']
+      },
+      {
+        path: 'costums.size',
+        select: ['size', 'netPrice']
+      },
+      {
+        path: 'costums.additions',
+        select: ['name', 'netPrice']
+      },
+      {
+        path: 'additions',
+        select: ['name', 'netPrice']
+      }
+    ]);
 
     if (!request) {
       const error = new Error('Request does not exist');
@@ -121,14 +121,13 @@ exports.createRequest = async (req, res, next) => {
 
     // Get costums IDs from input
     const costumsIds = input.costums.map((item) => {
-      const costumId = item.costum instanceof mongoose.Types.ObjectId ? 
-        item.costum._id.toString() : item.costum;
+      const costumId = item.costum instanceof mongoose.Types.ObjectId ? item.costum._id.toString() : item.costum;
 
       return costumId;
     });
 
     // Validate costums
-    const costums = await Costum.find({ _id: { $in: costumsIds }});
+    const costums = await Costum.find({ _id: { $in: costumsIds } });
 
     if (costums.length !== costumsIds.length) {
       const error = new Error('One costum at least does not exist');
@@ -139,7 +138,7 @@ exports.createRequest = async (req, res, next) => {
 
     // Validate service adds
     if (input.additions && Array.isArray(input.additions)) {
-      const additions = await Addition.find({ _id: { $in: input.additions }});
+      const additions = await Addition.find({ _id: { $in: input.additions } });
 
       if (additions.length !== input.additions.length) {
         const error = new Error('One service addition at least does not exist');
@@ -155,6 +154,14 @@ exports.createRequest = async (req, res, next) => {
     const requestObj = new Request({ ...input });
 
     const request = await requestObj.save();
+
+    // Update the user orders
+    const user = await User.findOne({ _id: userId });
+
+    if (user) {
+      user.orders.push(request._id.toString());
+      await user.save();
+    }
 
     res.status(201).json(request);
   } catch (error) {
@@ -200,14 +207,13 @@ exports.updateRequest = async (req, res, next) => {
 
     // Get costums IDs from input
     const costumsIds = input.costums.map((item) => {
-      const costumId = item.costum instanceof mongoose.Types.ObjectId ? 
-        item.costum._id.toString() : item.costum;
-      
+      const costumId = item.costum instanceof mongoose.Types.ObjectId ? item.costum._id.toString() : item.costum;
+
       return costumId;
     });
 
     // Validate costums
-    const costums = await Costum.find({ _id: { $in: costumsIds }});
+    const costums = await Costum.find({ _id: { $in: costumsIds } });
 
     if (costums.length !== costumsIds.length) {
       const error = new Error('One costum at least does not exist');
@@ -218,7 +224,7 @@ exports.updateRequest = async (req, res, next) => {
 
     // Validate service adds
     if (input.additions && Array.isArray(input.additions)) {
-      const additions = await Addition.find({ _id: { $in: input.additions }});
+      const additions = await Addition.find({ _id: { $in: input.additions } });
 
       if (additions.length !== input.additions.length) {
         const error = new Error('One service addition at least does not exist');

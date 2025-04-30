@@ -18,6 +18,7 @@ const serviceTypeRoute = require('./routes/service-type.route');
 const costumRoute = require('./routes/costum.route');
 const serviceReqRoute = require('./routes/service-request.route');
 const kinderReqRoute = require('./routes/kindergarten-request.route');
+const orderRoute = require('./routes/order.route');
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use(serviceTypeRoute);
 app.use(costumRoute);
 app.use(serviceReqRoute);
 app.use(kinderReqRoute);
+app.use(orderRoute);
 
 // Resource not found handler
 app.use(notFound);
