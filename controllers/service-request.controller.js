@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 
+const User = require('../models/user');
 const ServiceRequest = require('../models/service-request');
 const Theme = require('../models/theme');
 const Package = require('../models/package');
