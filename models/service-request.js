@@ -15,7 +15,8 @@ const requestSchema = new Schema(
     },
     clientName: String,
     type: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'ServiceType',
       required: true
     },
     theme: {

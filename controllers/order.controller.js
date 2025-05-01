@@ -70,12 +70,13 @@ exports.getOrders = async (req, res, next) => {
 
     if (orders.length) {
       const kRequests = await KindergartenRequest.find(query);
-      const sRequests = await ServiceRequest.find(query).populate('type', 'name');
+      const sRequests = await ServiceRequest.find(query).populate('type', ['_id', 'name']);
 
       const requests = kRequests
         .map((kItem) => ({
           _id: kItem._id,
           reqType: 'K',
+          typeId: '',
           title: 'تصوير روضات',
           netPrice: kItem.netPrice,
           status: kItem.status,
@@ -85,7 +86,8 @@ exports.getOrders = async (req, res, next) => {
           sRequests.map((sItem) => ({
             _id: sItem._id,
             reqType: 'O',
-            title: 'تصوير ' + sItem.type,
+            typeId: sItem.type._id.toString(),
+            title: 'تصوير ' + sItem.type.name,
             netPrice: sItem.netPrice,
             status: sItem.status,
             createdAt: sItem.createdAt

@@ -34,6 +34,10 @@ exports.getServiceRequest = async (req, res, next) => {
   try {
     const request = await ServiceRequest.findById(requestId).populate([
       {
+        path: 'type',
+        select: ['_id', 'name']
+      },
+      {
         path: 'theme',
         select: ['title', 'description', 'imagesPaths', 'additionalCharge']
       },
