@@ -44,7 +44,7 @@ router.put(
   requestController.updateServiceRequest
 );
 
-router.put(
+router.patch(
   '/service-requests/cancel/:requestId',
   isAuth,
   requestController.cancelServiceRequest

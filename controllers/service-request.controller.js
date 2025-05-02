@@ -293,7 +293,8 @@ exports.cancelServiceRequest = async (req, res, next) => {
       throw error;
     }
 
-    await ServiceRequest.updateOne({ _id: requestId }, { status: 'CANC' });
+    request.status = 'CANC';
+    await request.save();
 
     res.status(201).json({ message: 'Service request was cancelled' });
   } catch (error) {
