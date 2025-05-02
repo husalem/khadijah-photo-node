@@ -274,3 +274,33 @@ exports.deleteServiceRequest = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.cancelServiceRequest = async (req, res, next) => {
+  const { requestId } = req.params;
+
+  try {
+    const request = await ServiceRequest.findById(requestId);
+
+    if (!request) {
+      const error = new Error('Service request does not exist');
+      error.statusCode = 404;
+
+      throw error;
+    } else if (request.status !== 'INIT') {
+      const error = new Error('Request cannot be cancelled');
+      error.statusCode = 400;
+
+      throw error;
+    }
+
+    await ServiceRequest.updateOne({ _id: requestId }, { status: 'CANC' });
+
+    res.status(201).json({ message: 'Service request was cancelled' });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
