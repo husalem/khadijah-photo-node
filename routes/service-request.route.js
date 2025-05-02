@@ -44,6 +44,12 @@ router.put(
   requestController.updateServiceRequest
 );
 
+router.put(
+  '/service-requests/cancel/:requestId',
+  isAuth,
+  requestController.cancelServiceRequest
+);
+
 router.delete(
   '/service-requests/:requestId',
   isAuth,
