@@ -128,7 +128,7 @@ serviceSchema.pre(['save', 'updateOne'], async function (next) {
 
   request.netPrice = costumsPrice + addsPrice;
 
-  console.log('Net price after calculation:', { ...request });
+  console.log('Net price after calculation:', { costumsPrice, addsPrice, netPrice: request.netPrice });
   
   next();
 });
