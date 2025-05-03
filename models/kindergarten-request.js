@@ -71,9 +71,6 @@ serviceSchema.pre(['save', 'updateOne'], async function (next) {
   let additions = [];
   let costumsPrice = 0;
 
-  console.log('Before model save:', { ...request });
-  
-
   // Extract all distinct sizes and additions of costums
   request.costums.map((item) => {
     const sizeId = item.size instanceof mongoose.Types.ObjectId ? 
@@ -128,8 +125,6 @@ serviceSchema.pre(['save', 'updateOne'], async function (next) {
 
   request.netPrice = costumsPrice + addsPrice;
 
-  console.log('Net price after calculation:', { costumsPrice, addsPrice, netPrice: request.netPrice });
-  
   next();
 });
 
