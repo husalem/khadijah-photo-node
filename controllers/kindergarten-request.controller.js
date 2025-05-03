@@ -234,6 +234,9 @@ exports.updateRequest = async (req, res, next) => {
       }
     }
 
+    console.log('Before controller save:', { ...request });
+    
+
     const result = await Request.updateOne({ _id: requestId }, { ...input });
 
     if (!result.matchedCount) {
