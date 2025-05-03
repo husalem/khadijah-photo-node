@@ -205,6 +205,15 @@ exports.updateRequest = async (req, res, next) => {
       throw error;
     }
 
+    // Format the costums structure to comply the model
+    input.costums = input.costums.map((item) => {
+      const costum = item.costum._id;
+      const size = item.size._id;
+      const additions = item.additions.map((addition) => addition._id);
+
+      return { costum, size, additions };
+    });
+
     // Get costums IDs from input
     const costumsIds = input.costums.map((item) => {
       const costumId = item.costum instanceof mongoose.Types.ObjectId ? item.costum._id.toString() : item.costum;
@@ -233,9 +242,6 @@ exports.updateRequest = async (req, res, next) => {
         throw error;
       }
     }
-
-    console.log('Before controller save:', { ...request });
-    
 
     const result = await Request.updateOne({ _id: requestId }, { ...input });
 
