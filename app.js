@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const cors = require('./middleware/cors.middleware');
 const notFound = require('./middleware/not-found.middleware');
 const serverError = require('./middleware/server-error.middleware');
+const configRoute = require('./routes/app-config.route');
 const authRoute = require('./routes/auth.route');
 const kindergartenRoute = require('./routes/kindergarten.route');
 const themeRoute = require('./routes/theme.route');
@@ -38,6 +39,7 @@ app.use(cors);
 app.use(express.static(path.join(__dirname, 'assets')));
 
 // Register routes
+app.use(configRoute);
 app.use(authRoute);
 app.use(kindergartenRoute);
 app.use(themeRoute);
