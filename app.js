@@ -78,7 +78,7 @@ mongoose
     const io = require('./socket').init(server);
 
     io.on('connection', (socket) => {
-      console.log(`${new Date().toLocaleString()} Client connected:`, socket.id);
+      // console.log(`${new Date().toLocaleString()} Client connected:`, socket.id);
     });
 
     io.on('connect_error', (error) => console.log('Socket.io connection error:', error));
