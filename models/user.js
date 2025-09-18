@@ -9,6 +9,21 @@ const userSchema = new Schema(
       required: [true, 'Phone number is missiing'],
       validate: [(value) => /^\d{9,}$/, 'Phone must contain only numbers']
     },
+    email: {
+      type: String,
+      validate: [
+        (value) => /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value),
+        'Please enter a valid email'
+      ],
+      sparse: true,
+      unique: true,
+      lowercase: true,
+      trim: true
+    },
+    password: {
+      type: String,
+      minlength: [6, 'Password must be at least 6 characters long']
+    },
     name: String,
     role: {
       type: String,
@@ -30,7 +45,9 @@ const userSchema = new Schema(
     verificationTime: {
       type: Number,
       default: 0
-    }
+    },
+    passwordResetToken: String,
+    passwordResetExpiration: Date
   },
   { timestamps: true }
 );

@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 
 const authController = require('../controllers/auth.controller');
 const isAuth = require('../middleware/is-auth.middleware');
+const isAdmin = require('../middleware/is-admin.middleware');
 
 const router = express.Router();
 
@@ -77,5 +78,57 @@ router.post(
     .isLength({ min: 9 }).withMessage('Parameter must be of length 9 at least'),
   authController.signin
 );
+
+router.post(
+  '/auth/admin/signin',
+  body(['email', 'password'])
+    .trim()
+    .notEmpty().withMessage('Missing parameter'),
+  body('email')
+    .isEmail().withMessage('Invalid email format')
+    .normalizeEmail(),
+  authController.adminSignin
+);
+
+router.post(
+  '/auth/admin/register',
+  isAuth,
+  isAdmin,
+  body(['email', 'password'])
+    .trim()
+    .notEmpty().withMessage('Missing parameter'),
+  body('email')
+    .isEmail().withMessage('Invalid email format')
+    .normalizeEmail(),
+  body('password')
+    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+  authController.adminRegister
+);
+
+router.post(
+  '/auth/admin/forgot-password',
+  body('email')
+    .trim()
+    .notEmpty().withMessage('Missing parameter')
+    .isEmail().withMessage('Invalid email format')
+    .normalizeEmail(),
+  authController.adminForgotPassword
+);
+
+router.get(
+  '/auth/admin/reset-password/:token',
+  authController.checkAdminResetToken
+);
+
+router.post(
+  '/auth/admin/password-reset',
+  body(['token', 'newPassword'])
+    .trim()
+    .notEmpty().withMessage('Missing parameter'),
+  body('newPassword')
+    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+  authController.adminPasswordReset
+);
+
 
 module.exports = router;
