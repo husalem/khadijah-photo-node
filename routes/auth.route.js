@@ -86,7 +86,7 @@ router.post(
     .notEmpty().withMessage('Missing parameter'),
   body('email')
     .isEmail().withMessage('Invalid email format')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
   authController.adminSignin
 );
 
@@ -99,7 +99,7 @@ router.post(
     .notEmpty().withMessage('Missing parameter'),
   body('email')
     .isEmail().withMessage('Invalid email format')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
   body('password')
     .isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
   authController.adminRegister
@@ -111,7 +111,7 @@ router.post(
     .trim()
     .notEmpty().withMessage('Missing parameter')
     .isEmail().withMessage('Invalid email format')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
   authController.adminForgotPassword
 );
 
@@ -121,7 +121,7 @@ router.get(
 );
 
 router.post(
-  '/auth/admin/password-reset',
+  '/auth/admin/reset-password',
   body(['token', 'newPassword'])
     .trim()
     .notEmpty().withMessage('Missing parameter'),

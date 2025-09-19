@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const { validationResult } = require('express-validator');
@@ -13,7 +14,8 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
-  }
+  },
+  logger: true
 });
 
 exports.createVerification = async (req, res, next) => {
@@ -458,8 +460,12 @@ exports.adminSignin = async (req, res, next) => {
       error.statusCode = 403;
 
       throw error;
-    } else if (!user.password || user.password !== password) {
-      const error = new Error('Invalid password');
+    }
+
+    const matches = await bcrypt.compare(password, user.password);
+
+    if (!matches) {
+      const error = new Error('Wrong password');
       error.statusCode = 400;
 
       throw error;
@@ -496,7 +502,7 @@ exports.adminSignin = async (req, res, next) => {
 };
 
 exports.adminRegister = async (req, res, next) => {
-  const { email, password } = req.body;
+  const { phone, email, password } = req.body;
   const errors = validationResult(req);
 
   try {
@@ -520,7 +526,9 @@ exports.adminRegister = async (req, res, next) => {
       throw error;
     }
 
-    const userObj = new User({ email, password, role: '0', lastLogin: new Date() });
+    const hashedPassword = await bcrypt.hash(password, 16);
+
+    const userObj = new User({ phone, email, password: hashedPassword, role: '0', lastLogin: new Date() });
 
     const user = await userObj.save();
 
@@ -597,19 +605,17 @@ exports.adminForgotPassword = async (req, res, next) => {
         to: user.email,
         subject: 'إعادة تعيين كلمة المرور',
         html: `
-        <div style="direction: rtl; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: right; min-width: 640px; width: 100%; height: 100%; font-size: 18px; font-family: 'Readex Pro', 'Tajawal', 'Arabic Transparent', 'Roboto', Arial, Helvetica, sans-serif; background-color: #fafafa;">
-          <div style="display: block; height: 4px; width: 100%; line-height: 4px; background: #6b4fbb; flex-grow: 1;"></div>
+        <div style="direction: rtl; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: right; min-width: 640px; width: 100%; height: 100%; font-size: 16px; font-family: 'Readex Pro', 'Tajawal', 'Arabic Transparent', 'Roboto', Arial, Helvetica, sans-serif; background-color: #fafafa;">
+          <div style="display: block; height: 4px; width: 100%; line-height: 4px; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); flex-grow: 1;"></div>
           <div style="width: 640px; padding: 25px 0">
             <div style="position: relative; background-color: #ffffff; border: 1px solid #ededed; border-radius: 5px; overflow: hidden; padding: 18px 25px;">
-              <div style="padding: 15px 5px; color: #333333;">
+              <div style="padding: 15px 5px; color: #333333; line-height: 1.5;">
                 <h2>مرحباً</h2>
                 <p>طلبت إعادة تعيين كلمة المرور لحسابك</p>
-                <>لإتمام العملية، يرجى نسخ الرابط أدناه، علماً بأن هذا الرابط صالح لمدة 3 ساعات فقط:
-                  <br/>
-                  <a href="https://admin.khadijahphoto.com/reset-password?token=${resetToken}">Reset Password</a>
-                </p>
-                <p style="margin-top: 15px; color: #a25413;">إذا لم تقم بطلب إعادة تعيين كلمة المرور وتعتقد أن الرسالة وصلتك بالخطأ، فقط تجاهلها.</p>
+                <p>لإتمام العملية، يرجى الضغط على الرابط أدناه. علماً بأن هذا الرابط صالح لمدة 3 ساعات فقط:</p>
+                <p><a target="_blank" style="color: #27537a; font-weight: 400; line-height: 1.5;" href="https://admin.khadijahphoto.com/reset-password?token=${resetToken}">Reset Password</a></p>
               </div>
+              <p style="margin-top: 15px; color: #b45309; font-size: 14px;">إذا لم تقم بطلب إعادة تعيين كلمة المرور وتعتقد أن الرسالة وصلتك بالخطأ، فقط تجاهلها.</p>
             </div>
           </div>
         </div>
@@ -702,7 +708,9 @@ exports.adminPasswordReset = async (req, res, next) => {
       throw error;
     }
 
-    user.password = newPassword;
+    const hashedPassword = await bcrypt.hash(newPassword, 16);
+
+    user.password = hashedPassword;
     user.passwordResetToken = undefined;
     user.passwordResetExpiration = undefined;
 
