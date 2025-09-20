@@ -18,6 +18,70 @@ const transporter = nodemailer.createTransport({
   logger: true
 });
 
+const mailBody = `
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+  </head>
+  <body style="margin:0; padding:0; background-color:#fafafa; -webkit-text-size-adjust:none;">
+    <!-- Outer full-width table -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#fafafa;">
+      <tr>
+        <td align="center">
+          <!-- Gradient row (100% width) -->
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="640" style="width:640px max-width:640px; margin: 0 auto;">
+            <tr>
+              <td style="padding:0; margin:0; height:10px; line-height:4px;
+                         background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);">
+                <!-- Fallback image for clients that ignore CSS gradients -->
+                <img src="cid:grad" alt="" width="100%" style="display:block; max-width:640px; max-height:90px; width:100%;">
+              </td>
+            </tr>
+          </table>
+
+          <!-- Centered card (fixed width, responsive) -->
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"
+                 width="640" style="width:640px; max-width:640px; margin:0 auto;">
+            <tr>
+              <td style="padding:25px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+                       style="background:#ffffff; border:1px solid #ededed; border-radius:5px; overflow:hidden;">
+                  <tr>
+                    <td style="padding:18px 25px; color:#333333; font-family: Arial, Helvetica, sans-serif; font-size:16px; text-align:right; direction:rtl;">
+                      <h2 style="margin:0 0 10px 0; font-size:28px; line-height:1;">مرحبا</h2>
+
+                      <p style="margin:0 0 12px;">لقد طلبت إعادة تعيين كلمة المرور لحسابك.</p>
+
+                      <p style="margin:0 0 18px;">لإتمام العملية يرجى الضغط على الرابط أدناه. علماً بأن هذا الرابط صالح لمدة 3 ساعات فقط.</p>
+
+                      <p style="margin:0 0 12px;">
+                        <a href="https://admin.khadijahphoto.com/reset-password?token=REPLACEME"
+                           style="display:inline-block; padding:10px 16px; background:#080723; color:#ffffff; text-decoration:none; border-radius:4px;">
+                          Reset Password
+                        </a>
+                      </p>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:0 18px 18px 18px; color:#D45309; font-size:14px; text-align:right; direction:rtl;">
+                      إذا لم تقم بطلب إعادة تعيين كلمة المرور وتعتقد أن الرسالة وصلك بالخطأ فقط تجاهلها.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+`;
+
 exports.createVerification = async (req, res, next) => {
   const errors = validationResult(req);
   const { countryCode, phone } = req.body;
@@ -604,22 +668,14 @@ exports.adminForgotPassword = async (req, res, next) => {
         from: `"Khadijah Photo" <${process.env.EMAIL_USER}>`,
         to: user.email,
         subject: 'إعادة تعيين كلمة المرور',
-        html: `
-        <div style="direction: rtl; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: right; min-width: 640px; width: 100%; height: 100%; font-size: 16px; font-family: 'Readex Pro', 'Tajawal', 'Arabic Transparent', 'Roboto', Arial, Helvetica, sans-serif; background-color: #fafafa;">
-          <div style="display: block; height: 4px; width: 100%; line-height: 4px; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); flex-grow: 1;"></div>
-          <div style="width: 640px; padding: 25px 0">
-            <div style="position: relative; background-color: #ffffff; border: 1px solid #ededed; border-radius: 5px; overflow: hidden; padding: 18px 25px;">
-              <div style="padding: 15px 5px; color: #333333; line-height: 1.5;">
-                <h2>مرحباً</h2>
-                <p>طلبت إعادة تعيين كلمة المرور لحسابك</p>
-                <p>لإتمام العملية، يرجى الضغط على الرابط أدناه. علماً بأن هذا الرابط صالح لمدة 3 ساعات فقط:</p>
-                <p><a target="_blank" style="color: #27537a; font-weight: 400; line-height: 1.5;" href="https://admin.khadijahphoto.com/reset-password?token=${resetToken}">Reset Password</a></p>
-              </div>
-              <p style="margin-top: 15px; color: #b45309; font-size: 14px;">إذا لم تقم بطلب إعادة تعيين كلمة المرور وتعتقد أن الرسالة وصلتك بالخطأ، فقط تجاهلها.</p>
-            </div>
-          </div>
-        </div>
-      `
+        html: mailBody.replace('REPLACEME', resetToken),
+        attachments: [
+          {
+            filename: 'grad.png',
+            path: 'assets/images/mail_header.png',
+            cid: 'grad' // same cid value as in the html img src
+          }
+        ]
       },
       async (error, info) => {
         if (error) {

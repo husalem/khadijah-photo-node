@@ -43,3 +43,7 @@ Thumbs.db
 # keys
 server.cert
 server.key
+
+# local assets
+/assets/images/*
+!/assets/images/mail_header.png
