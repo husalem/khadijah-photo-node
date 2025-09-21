@@ -64,9 +64,10 @@ app.use(serverError);
 const { mongo } = JSON.parse(process.env.APP_CONFIG || '{}');
 const USERNAME = mongo.user;
 const PASSWORD = process.env.MONGO_PASSWORD;
+const PROTOCOL = process.env.NODE_ENV !== 'production' ? 'mongodb+srv' : 'mongodb';
 
 // MongoDB URI
-const connection = `${process.env.development ? 'mongodb+srv' : 'mongodb'}://${USERNAME}:${encodeURIComponent(PASSWORD)}@${mongo.hostString}`;
+const connection = `${PROTOCOL}://${USERNAME}:${encodeURIComponent(PASSWORD)}@${mongo.hostString}`;
 
 mongoose
   .connect(connection)
@@ -74,7 +75,7 @@ mongoose
     console.clear();
     console.log(`${new Date().toLocaleString()}: Connected`);
 
-    const server = app.listen(process.env.port || 3000);
+    const server = app.listen(process.env.PORT || 3000);
 
     // Setup socket.io
     const io = require('./socket').init(server);
