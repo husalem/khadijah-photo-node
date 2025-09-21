@@ -140,7 +140,8 @@ exports.createVerification = async (req, res, next) => {
 
     const verification = await client.verify.v2.services(process.env.TWILIO_SRV_SID).verifications.create({
       to: phoneNumber,
-      channel: 'sms'
+      channel: 'sms',
+      locale: 'ar_SA'
     });
 
     io.websocket().emit('auth', {

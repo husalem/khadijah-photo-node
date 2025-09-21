@@ -17,6 +17,11 @@ const serviceSchema = new Schema(
       ref: 'Kindergarten',
       required: true
     },
+    kindergartenClass: {
+      type: Schema.Types.ObjectId,
+      ref: 'KindergartenClass',
+      required: true
+    },
     costums: [
       {
         costum: {

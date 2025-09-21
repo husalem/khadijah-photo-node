@@ -30,7 +30,7 @@ router.get(
 router.post(
   '/kindergarten-requests',
   isAuth,
-  body(['kindergarten', 'childName'])
+  body(['kindergarten', 'kindergartenClass', 'childName'])
     .trim()
     .notEmpty().withMessage('Missing parameter'),
   body('costums')
@@ -41,7 +41,7 @@ router.post(
 router.put(
   '/kindergarten-requests/:requestId',
   isAuth,
-  body(['kindergarten', 'childName'])
+  body(['kindergarten', 'kindergartenClass', 'childName'])
     .trim()
     .notEmpty().withMessage('Missing parameter'),
   body('costums')

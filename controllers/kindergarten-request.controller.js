@@ -38,6 +38,10 @@ exports.getRequest = async (req, res, next) => {
         select: ['name', 'district']
       },
       {
+        path: 'kindergartenClass',
+        select: ['name', 'active']
+      },
+      {
         path: 'costums.costum',
         select: ['title', 'imagePath']
       },
@@ -102,6 +106,7 @@ exports.getRequests = async (req, res, next) => {
     next(error);
   }
 };
+
 exports.createRequest = async (req, res, next) => {
   const input = req.body;
   const { userId } = req;
