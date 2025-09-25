@@ -9,6 +9,8 @@ const router = express.Router();
 
 router.get(
   '/kindergarten-classes/count',
+  isAuth,
+  isAdmin,
   controller.getKindergartenClassesCount
 );
 
@@ -19,7 +21,19 @@ router.get(
 
 router.get(
   '/kindergarten-classes',
+  isAuth,
+  isAdmin,
   controller.getKindergartenClasses
+);
+
+router.get(
+  '/kindergarten-classes/count/by-kindergarten/:kindergartenId',
+  controller.getKindergartenClassesCountByKindergarten
+);
+
+router.get(
+  '/kindergarten-classes/by-kindergarten/:kindergartenId',
+  controller.getKindergartenClassesByKindergarten
 );
 
 router.post(

@@ -56,6 +56,38 @@ exports.getKindergartenClassesCount = async (req, res, next) => {
   }
 };
 
+exports.getKindergartenClassesByKindergarten = async (req, res, next) => {
+  const { kindergartenId } = req.params;
+
+  try {
+    const kindergartenClasses = await KindergartenClass.find({ kindergarten: kindergartenId }).populate('kindergarten');
+
+    res.status(200).json(kindergartenClasses);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.getKindergartenClassesCountByKindergarten = async (req, res, next) => {
+  const { kindergartenId } = req.params;
+
+  try {
+    const count = await KindergartenClass.countDocuments({ kindergarten: kindergartenId });
+
+    res.status(200).json(count);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
 exports.createKindergartenClass = async (req, res, next) => {
   const { name, kindergarten } = req.body;
   const errors = validationResult(req);
