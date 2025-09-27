@@ -62,9 +62,9 @@ app.use(serverError);
 
 // MongoDB connection string config
 const { mongo } = JSON.parse(process.env.APP_CONFIG || '{}');
+const PROTOCOL = process.env.MONGO_PROTOCOL;
 const USERNAME = mongo.user;
 const PASSWORD = process.env.MONGO_PASSWORD;
-const PROTOCOL = process.env.NODE_ENV !== 'production' ? 'mongodb+srv' : 'mongodb';
 
 // MongoDB URI
 const connection = `${PROTOCOL}://${USERNAME}:${encodeURIComponent(PASSWORD)}@${mongo.hostString}`;

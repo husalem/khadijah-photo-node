@@ -127,14 +127,13 @@ exports.createVerification = async (req, res, next) => {
     }, 300000);
 
     /************** IN DEVELOPMENT, NO NEED TO SEND SMS **************/
-    if (process.env.NODE_ENV !== 'production') {
-      return res.status(200)
-        .json({
-          message: 'Development',
-          status: 'Sent',
-          userId: user._id.toString(),
-          phone: user.phone
-        });
+    if (process.env.NODE_ENV === 'development') {
+      return res.status(200).json({
+        message: 'Development',
+        status: 'Sent',
+        userId: user._id.toString(),
+        phone: user.phone
+      });
     }
     /******************************************************************/
 
@@ -195,7 +194,7 @@ exports.checkVerification = async (req, res, next) => {
     }
 
     /************** IN DEVELOPMENT, NO NEED TO CHECK **************/
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV === 'development') {
       const devToken = jwt.sign(
         {
           phone: user.phone,
@@ -213,14 +212,13 @@ exports.checkVerification = async (req, res, next) => {
       user.verificationTime = 0;
       await user.save();
 
-      return res.status(200)
-        .json({
-          message: 'Development',
-          status: 'approved',
-          userId: user._id,
-          token: devToken,
-          phone: user.phone
-        });
+      return res.status(200).json({
+        message: 'Development',
+        status: 'approved',
+        userId: user._id,
+        token: devToken,
+        phone: user.phone
+      });
     }
     /**************************************************************/
 
