@@ -1,6 +1,6 @@
 {
   "name": "khadijah-photo-node",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Khadijah Photo",
   "main": "app.js",
   "scripts": {

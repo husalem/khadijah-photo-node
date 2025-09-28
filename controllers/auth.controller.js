@@ -590,7 +590,7 @@ exports.adminRegister = async (req, res, next) => {
       throw error;
     }
 
-    const hashedPassword = await bcrypt.hash(password, 16);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const userObj = new User({ phone, email, password: hashedPassword, role: '0', lastLogin: new Date() });
 
@@ -764,7 +764,7 @@ exports.adminPasswordReset = async (req, res, next) => {
       throw error;
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 16);
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     user.password = hashedPassword;
     user.passwordResetToken = undefined;
