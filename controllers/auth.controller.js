@@ -553,7 +553,8 @@ exports.adminSignin = async (req, res, next) => {
     res.status(201).json({
       token: token,
       userId: user._id.toString(),
-      userRole: user.role
+      userRole: user.role,
+      name: user.name
     });
   } catch (error) {
     if (!error.statusCode) {
