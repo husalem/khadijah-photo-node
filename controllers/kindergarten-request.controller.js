@@ -88,7 +88,7 @@ exports.getRequest = async (req, res, next) => {
 };
 
 exports.getRequests = async (req, res, next) => {
-  const { skip, limit, status } = req.query;
+  const { skip, limit, filter, sort } = req.query;
   const { userId, userRole } = req;
   let query = {};
 
@@ -96,12 +96,12 @@ exports.getRequests = async (req, res, next) => {
     query.user = userId;
   }
 
-  if (status) {
-    query.status = status;
+  if (filter) {
+    query = { ...query, ...filter };
   }
 
   try {
-    const requests = await Request.find(query).skip(skip).limit(limit).populate(populate);
+    const requests = await Request.find(query).sort(sort).skip(skip).limit(limit).populate(populate);
 
     res.status(200).json(requests);
   } catch (error) {
