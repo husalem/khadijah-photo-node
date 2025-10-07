@@ -6,6 +6,37 @@ const Request = require('../models/kindergarten-request');
 const Costum = require('../models/costum');
 const Addition = require('../models/service-adds');
 
+const populate = [
+  {
+    path: 'user',
+    select: ['phone', 'email']
+  },
+  {
+    path: 'kindergarten',
+    select: ['name', 'district', 'active']
+  },
+  {
+    path: 'kindergartenClass',
+    select: ['name', 'active']
+  },
+  {
+    path: 'costums.costum',
+    select: ['title', 'imagePath']
+  },
+  {
+    path: 'costums.size',
+    select: ['size', 'netPrice']
+  },
+  {
+    path: 'costums.additions',
+    select: ['name', 'netPrice']
+  },
+  {
+    path: 'additions',
+    select: ['name', 'netPrice']
+  }
+];
+
 exports.getRequestsCount = async (req, res, next) => {
   const { status } = req.query;
   let query = {};
@@ -32,32 +63,7 @@ exports.getRequest = async (req, res, next) => {
   const { userId, userRole } = req;
 
   try {
-    const request = await Request.findById(requestId).populate([
-      {
-        path: 'kindergarten',
-        select: ['name', 'district']
-      },
-      {
-        path: 'kindergartenClass',
-        select: ['name', 'active']
-      },
-      {
-        path: 'costums.costum',
-        select: ['title', 'imagePath']
-      },
-      {
-        path: 'costums.size',
-        select: ['size', 'netPrice']
-      },
-      {
-        path: 'costums.additions',
-        select: ['name', 'netPrice']
-      },
-      {
-        path: 'additions',
-        select: ['name', 'netPrice']
-      }
-    ]);
+    const request = await Request.findById(requestId).populate(populate);
 
     if (!request) {
       const error = new Error('Request does not exist');
@@ -95,7 +101,7 @@ exports.getRequests = async (req, res, next) => {
   }
 
   try {
-    const requests = await Request.find(query).skip(skip).limit(limit);
+    const requests = await Request.find(query).skip(skip).limit(limit).populate(populate);
 
     res.status(200).json(requests);
   } catch (error) {
