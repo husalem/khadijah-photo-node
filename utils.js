@@ -33,9 +33,43 @@ exports.getMulterConfig = (dir, filters) => {
 
   // Setup uploaded file limits
   const limits = {
-    fileSize: '10000',  // 10 MB
-    files: 10           // 10 files maximum
-  }
+    fileSize: '10000', // 10 MB
+    files: 10 // 10 files maximum
+  };
 
   return multer({ storage, fileFilter, limits });
+};
+
+// Query filter builder
+exports.buildFilter = (filter, allowedFilters) => {
+  const mongoFilter = {};
+  for (const key in filter) {
+    if (allowedFilters.includes(key)) {
+      const value = filter[key];
+      if (typeof value === 'object' && ('$gte' in value || '$lte' in value)) {
+        mongoFilter[key] = {};
+        if ('$gte' in value) mongoFilter[key]['$gte'] = Number(value['$gte']);
+        if ('$lte' in value) mongoFilter[key]['$lte'] = Number(value['$lte']);
+      } else {
+        mongoFilter[key] = value;
+      }
+    }
+  }
+
+  return mongoFilter;
+};
+
+// Query sorter builder
+exports.buildSorter = (sorter, allowedSorter) => {
+  const mongoSorter = {};
+  for (const key in sorter) {
+    if (allowedSorter.includes(key)) {
+      const value = sorter[key];
+      if (typeof value === 'object' && ('$gte' in value || '$lte' in value)) {
+        mongoSorter[key] = sorter[key] === 'desc' || sorter[key] === 'descending' || sorter[key] === -1 ? -1 : 1;
+      }
+    }
+  }
+
+  return mongoSorter;
 };

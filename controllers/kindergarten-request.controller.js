@@ -5,6 +5,10 @@ const User = require('../models/user');
 const Request = require('../models/kindergarten-request');
 const Costum = require('../models/costum');
 const Addition = require('../models/service-adds');
+const utils = require('../utils');
+
+const allowedFilters = ['kindergarten', 'kindergartenClass', 'childName', 'netPrice', 'status', 'updatedAt'];
+const allowedSorters = ['netPrice', 'updatedAt'];
 
 const populate = [
   {
@@ -38,11 +42,11 @@ const populate = [
 ];
 
 exports.getRequestsCount = async (req, res, next) => {
-  const { status } = req.query;
+  const { filter } = req.query;
   let query = {};
 
-  if (status) {
-    query.status = status;
+  if (filter) {
+    query = utils.buildFilter(filter, allowedFilters);
   }
 
   try {
@@ -91,17 +95,23 @@ exports.getRequests = async (req, res, next) => {
   const { skip, limit, filter, sort } = req.query;
   const { userId, userRole } = req;
   let query = {};
+  let sorter = {};
 
   if (userRole !== '0') {
     query.user = userId;
   }
 
   if (filter) {
-    query = { ...query, ...filter };
+    const queryFilter = utils.buildFilter(JSON.parse(filter), allowedFilters);
+    query = { ...query, ...queryFilter };
+  }
+
+  if (sort) {
+    sorter = utils.buildSorter(JSON.parse(sort), allowedSorters);
   }
 
   try {
-    const requests = await Request.find(query).sort(sort).skip(skip).limit(limit).populate(populate);
+    const requests = await Request.find(query).sort(sorter).skip(skip).limit(limit).populate(populate);
 
     res.status(200).json(requests);
   } catch (error) {
