@@ -46,7 +46,8 @@ exports.getRequestsCount = async (req, res, next) => {
   let query = {};
 
   if (filter) {
-    query = utils.buildFilter(filter, allowedFilters);
+    const jsonFilter = JSON.parse(decodeURIComponent(filter));
+    query = utils.buildFilter(jsonFilter, allowedFilters);
   }
 
   try {
