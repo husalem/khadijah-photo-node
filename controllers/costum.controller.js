@@ -5,9 +5,16 @@ const { validationResult } = require('express-validator');
 const Costum = require('../models/costum');
 const utils = require('../utils');
 
+const allowedFilters = ['title', 'tags', 'withFriend'];
+const allowedSorters = ['title'];
+const populate = [{ path: 'sizes', select: ['size', 'netPrice'] }];
+
 exports.getCostumsCount = async (req, res, next) => {
+  const { filter } = req.query;
+  const { query } = utils.prepareFilterAndSort(filter, '', allowedFilters, []);
+
   try {
-    const count = await Costum.countDocuments();
+    const count = await Costum.find(query).countDocuments();
 
     res.status(200).json(count);
   } catch (error) {
@@ -23,7 +30,7 @@ exports.getCostum = async (req, res, next) => {
   const { costumId } = req.params;
 
   try {
-    const costum = await Costum.findById(costumId).populate('sizes', ['size', 'netPrice']);
+    const costum = await Costum.findById(costumId).populate(populate);
 
     if (!costum) {
       const error = new Error('Costum does not exist');
@@ -43,10 +50,11 @@ exports.getCostum = async (req, res, next) => {
 };
 
 exports.getCostums = async (req, res, next) => {
-  const { skip, limit } = req.query;
+  const { skip, limit, filter, sort } = req.query;
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, allowedFilters, allowedSorters);
 
   try {
-    const costums = await Costum.find().skip(skip).limit(limit).populate('sizes', ['size', 'netPrice']);
+    const costums = await Costum.find(query).sort(sorter).skip(skip).limit(limit).populate(populate);
 
     res.status(200).json(costums);
   } catch (error) {
@@ -138,9 +146,7 @@ exports.updateCostum = async (req, res, next) => {
       if (fs.existsSync(loadedCostum.imagePath)) {
         fs.unlink(loadedCostum.imagePath, (error) => {
           if (error) {
-            console.log(
-              `Costum ${loadedCostum.imagePath} should have been deleted and it has not due to an error.`
-            );
+            console.log(`Costum ${loadedCostum.imagePath} should have been deleted and it has not due to an error.`);
           }
 
           console.log(`Costum ${loadedCostum.title} was replaced`);

@@ -8,7 +8,7 @@ const Addition = require('../models/service-adds');
 const utils = require('../utils');
 
 const allowedFilters = ['kindergarten', 'kindergartenClass', 'childName', 'netPrice', 'status', 'updatedAt'];
-const allowedSorters = ['netPrice', 'updatedAt'];
+const allowedSorters = ['netPrice', 'createdAt', 'updatedAt'];
 
 const populate = [
   {
@@ -43,12 +43,7 @@ const populate = [
 
 exports.getRequestsCount = async (req, res, next) => {
   const { filter } = req.query;
-  let query = {};
-
-  if (filter) {
-    const jsonFilter = JSON.parse(decodeURIComponent(filter));
-    query = utils.buildFilter(jsonFilter, allowedFilters);
-  }
+  const { query } = utils.prepareFilterAndSort(filter, '', allowedFilters, []);
 
   try {
     const count = await Request.find(query).countDocuments();
@@ -95,20 +90,10 @@ exports.getRequest = async (req, res, next) => {
 exports.getRequests = async (req, res, next) => {
   const { skip, limit, filter, sort } = req.query;
   const { userId, userRole } = req;
-  let query = {};
-  let sorter = {};
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, allowedFilters, allowedSorters);
 
   if (userRole !== '0') {
     query.user = userId;
-  }
-
-  if (filter) {
-    const queryFilter = utils.buildFilter(JSON.parse(filter), allowedFilters);
-    query = { ...query, ...queryFilter };
-  }
-
-  if (sort) {
-    sorter = utils.buildSorter(JSON.parse(sort), allowedSorters);
   }
 
   try {

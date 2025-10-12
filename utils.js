@@ -65,11 +65,27 @@ exports.buildSorter = (sorter, allowedSorter) => {
   for (const key in sorter) {
     if (allowedSorter.includes(key)) {
       const value = sorter[key];
-      // if (typeof value === 'object' && ('$gte' in value || '$lte' in value)) {
-        mongoSorter[key] = sorter[key] === 'desc' || sorter[key] === 'descending' || sorter[key] === -1 ? -1 : 1;
-      // }
+      mongoSorter[key] = value === 'desc' || value === 'descending' || value === -1 ? -1 : 1;
     }
   }
 
   return mongoSorter;
+};
+
+// Prepares both filter and sorter
+exports.prepareFilterAndSort = (filter = '', sort = '', allowedFilters = [], allowedSorters = []) => {
+  let query = {};
+  let sorter = {};
+
+  if (filter) {
+    const jsonFilter = JSON.parse(decodeURIComponent(filter));
+    query = this.buildFilter(jsonFilter, allowedFilters);
+  }
+
+  if (sort) {
+    const jsonSort = JSON.parse(decodeURIComponent(sort));
+    sorter = this.buildSorter(jsonSort, allowedSorters);
+  }
+
+  return { query, sorter };
 };
