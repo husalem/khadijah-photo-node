@@ -30,6 +30,8 @@ const serviceAddsSchema = new Schema(
   { timestamps: true }
 );
 
+serviceAddsSchema.index({ name: 1 }, { collation: { locale: 'ar', strength: 1 } });
+
 serviceAddsSchema.pre(['save', 'updateOne'], function (next) {
   let addition = this.op === 'updateOne' ? this._update : this;
 

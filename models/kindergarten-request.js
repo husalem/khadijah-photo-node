@@ -66,6 +66,8 @@ const serviceSchema = new Schema(
   { timestamps: true }
 );
 
+serviceSchema.index({ 'kindergarten.name': 1, childName: 2 }, { collation: { locale: 'ar', strength: 1 } });
+
 serviceSchema.pre(['save', 'updateOne'], async function (next) {
   let request = this.op === 'updateOne' ? this._update : this;
 

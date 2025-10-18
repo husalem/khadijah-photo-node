@@ -30,4 +30,6 @@ const serviceTypeSchema = new Schema(
   { timestamps: true }
 );
 
+serviceTypeSchema.index({ name: 1 }, { collation: { locale: 'ar', strength: 1 } });
+
 module.exports = mongoose.model('ServiceType', serviceTypeSchema);

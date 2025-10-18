@@ -45,6 +45,8 @@ const requestSchema = new Schema(
   { timestamps: true }
 );
 
+requestSchema.index({ clientName: 1 }, { collation: { locale: 'ar', strength: 1 } });
+
 requestSchema.pre(
   ['save', 'updateOne'],
   async function (next) {

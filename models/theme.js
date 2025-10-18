@@ -23,4 +23,6 @@ const themeSchema = new Schema(
   { timestamps: true }
 );
 
+themeSchema.index({ title: 1, tags: 2 }, { collation: { locale: 'ar', strength: 1 } });
+
 module.exports = mongoose.model('Theme', themeSchema);

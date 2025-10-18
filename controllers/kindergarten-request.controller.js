@@ -8,7 +8,7 @@ const Addition = require('../models/service-adds');
 const utils = require('../utils');
 
 const allowedFilters = ['kindergarten', 'kindergartenClass', 'childName', 'netPrice', 'status', 'updatedAt'];
-const allowedSorters = ['netPrice', 'createdAt', 'updatedAt'];
+const allowedSorters = ['kindergarten', 'childName', 'netPrice', 'createdAt', 'updatedAt'];
 
 const populate = [
   {
@@ -94,6 +94,18 @@ exports.getRequests = async (req, res, next) => {
 
   if (userRole !== '0') {
     query.user = userId;
+  }
+
+  // To sort kindergarten names.
+  if (sorter.kindergarten) {
+    sorter['kindergarten.name'] = sorter.kindergarten;
+    delete sorter.kindergarten;
+  }
+
+  // To sort by kindergarten class names.
+  if (sorter.kindergartenClass) {
+    sorter['kindergartenClass.name'] = sorter.kindergartenClass;
+    delete sorter.kindergartenClass;
   }
 
   try {

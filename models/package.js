@@ -22,6 +22,8 @@ const packageSchema = new Schema(
   { timestamps: true }
 );
 
+packageSchema.index({ name: 1 }, { collation: { locale: 'ar', strength: 1 } })
+
 packageSchema.pre(['save', 'updateOne'], function (next) {
   let package = this.op === 'updateOne' ? this._update : this;
 

@@ -22,4 +22,6 @@ const classSchema = new Schema(
   { timestamps: true }
 );
 
+classSchema.index({ name: 1 }, { collation: { locale: 'ar', strength: 1 } });
+
 module.exports = mongoose.model('KindergartenClass', classSchema);

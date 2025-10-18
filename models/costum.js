@@ -25,4 +25,6 @@ const costumSchema = new Schema(
   { timestamps: true }
 );
 
+costumSchema.index({ title: 1 }, { collation: { locale: 'ar', strength: 1 } })
+
 module.exports = mongoose.model('Costum', costumSchema);
