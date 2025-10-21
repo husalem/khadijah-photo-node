@@ -1,10 +1,14 @@
 const { validationResult } = require('express-validator');
 
 const Package = require('../models/package');
+const utils = require('../utils');
 
 exports.getPackagesCount = async (req, res, next) => {
+  const { filter } = req.query;
+  const { query } = utils.prepareFilterAndSort(filter, '', [], []);
+
   try {
-    const count = await Package.countDocuments();
+    const count = await Package.countDocuments(query);
 
     res.status(200).json(count);
   } catch (error) {
@@ -40,10 +44,11 @@ exports.getPackage = async (req, res, next) => {
 };
 
 exports.getPackages = async (req, res, next) => {
-  const { skip, limit } = req.query;
+  const { skip, limit, filter, sort } = req.query;
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, [], []);
 
   try {
-    const packages = await Package.find().skip(skip).limit(limit);
+    const packages = await Package.find(query).sort(sorter).skip(skip).limit(limit);
 
     res.status(200).json(packages);
   } catch (error) {
@@ -73,7 +78,6 @@ exports.createPackage = async (req, res, next) => {
     const packageObj = new Package({ ...input });
 
     const package = await packageObj.save();
-
 
     res.status(201).json(package);
   } catch (error) {

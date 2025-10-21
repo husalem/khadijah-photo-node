@@ -5,9 +5,26 @@ const { validationResult } = require('express-validator');
 const ServiceType = require('../models/service-type');
 const utils = require('../utils');
 
+const allowedFilters = ['name', 'description', 'themeBased', 'createdAt', 'updatedAt'];
+const allowedSorters = ['name', 'themeBased', 'createdAt', 'updatedAt'];
+
+const populate = [
+  {
+    path: 'themes',
+    select: ['title', 'description', 'additionalCharge', 'imagesPaths']
+  },
+  {
+    path: 'packages',
+    select: ['name', 'quantity', 'netPrice']
+  }
+];
+
 exports.getServiceTypesCount = async (req, res, next) => {
+  const { filter } = req.query;
+  const { query } = utils.prepareFilterAndSort(filter, '', allowedFilters, []);
+
   try {
-    const count = await ServiceType.countDocuments();
+    const count = await ServiceType.countDocuments(query);
 
     res.status(200).json(count);
   } catch (error) {
@@ -23,17 +40,7 @@ exports.getServiceType = async (req, res, next) => {
   const { serviceTypeId } = req.params;
 
   try {
-    const serviceType = await ServiceType.findById(serviceTypeId)
-      .populate([
-        {
-          path: 'themes',
-          select: ['title', 'description', 'additionalCharge', 'imagesPaths']
-        },
-        {
-          path: 'packages',
-          select: ['name', 'quantity', 'netPrice']
-        }
-      ]);
+    const serviceType = await ServiceType.findById(serviceTypeId).populate(populate);
 
     if (!serviceType) {
       const error = new Error('Service type does not exist');
@@ -53,10 +60,11 @@ exports.getServiceType = async (req, res, next) => {
 };
 
 exports.getServiceTypes = async (req, res, next) => {
-  const { skip, limit } = req.query;
+  const { skip, limit, filter, sort } = req.query;
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, allowedFilters, allowedSorters);
 
   try {
-    const serviceTypes = await ServiceType.find().skip(skip).limit(limit);
+    const serviceTypes = await ServiceType.find(query).sort(sorter).skip(skip).limit(limit);
 
     res.status(200).json(serviceTypes);
   } catch (error) {

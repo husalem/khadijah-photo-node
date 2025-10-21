@@ -46,7 +46,7 @@ exports.getRequestsCount = async (req, res, next) => {
   const { query } = utils.prepareFilterAndSort(filter, '', allowedFilters, []);
 
   try {
-    const count = await Request.find(query).countDocuments();
+    const count = await Request.countDocuments(query);
 
     res.status(200).json(count);
   } catch (error) {
@@ -96,20 +96,11 @@ exports.getRequests = async (req, res, next) => {
     query.user = userId;
   }
 
-  // To sort kindergarten names.
-  if (sorter.kindergarten) {
-    sorter['kindergarten.name'] = sorter.kindergarten;
-    delete sorter.kindergarten;
-  }
-
-  // To sort by kindergarten class names.
-  if (sorter.kindergartenClass) {
-    sorter['kindergartenClass.name'] = sorter.kindergartenClass;
-    delete sorter.kindergartenClass;
-  }
+  // Only populate kindergartens and classes
+  const aPopulate = populate.filter((item) => ['kindergarten', 'kindergartenClass'].includes(item.path));
 
   try {
-    const requests = await Request.find(query).sort(sorter).skip(skip).limit(limit).populate(populate);
+    const requests = await Request.find(query).sort(sorter).skip(skip).limit(limit).populate(aPopulate);
 
     res.status(200).json(requests);
   } catch (error) {

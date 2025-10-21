@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 
 const Kindergarten = require('../models/kindergarten');
+const utils = require('../utils');
 
 exports.getKindergarten = async (req, res, next) => {
   const { kindergartenId } = req.params;
@@ -26,10 +27,11 @@ exports.getKindergarten = async (req, res, next) => {
 };
 
 exports.getKindergartens = async (req, res, next) => {
-  const { skip, limit } = req.query;
+  const { skip, limit, filter, sort } = req.query;
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, [], []);
 
   try {
-    const kindergartens = await Kindergarten.find().skip(skip).limit(limit);
+    const kindergartens = await Kindergarten.find(query).sort(sorter).skip(skip).limit(limit);
 
     res.status(200).json(kindergartens);
   } catch (error) {
@@ -42,8 +44,11 @@ exports.getKindergartens = async (req, res, next) => {
 };
 
 exports.getKindergartensCount = async (req, res, next) => {
+  const { filter } = req.query;
+  const { query } = utils.prepareFilterAndSort(filter, '', [], []);
+
   try {
-    const count = await Kindergarten.countDocuments();
+    const count = await Kindergarten.countDocuments(query);
 
     res.status(200).json(count);
   } catch (error) {

@@ -14,7 +14,7 @@ exports.getCostumsCount = async (req, res, next) => {
   const { query } = utils.prepareFilterAndSort(filter, '', allowedFilters, []);
 
   try {
-    const count = await Costum.find(query).countDocuments();
+    const count = await Costum.countDocuments(query);
 
     res.status(200).json(count);
   } catch (error) {

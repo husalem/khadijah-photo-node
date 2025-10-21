@@ -74,7 +74,7 @@ exports.buildFilter = (filter, allowedFilters) => {
     }
 
     // only allow whitelisted fields
-    if (!allowedFilters.includes(key)) continue;
+    if (allowedFilters.length && !allowedFilters.includes(key)) continue;
 
     const value = filter[key];
 
@@ -128,7 +128,7 @@ exports.buildFilter = (filter, allowedFilters) => {
 exports.buildSorter = (sorter, allowedSorter) => {
   const mongoSorter = {};
   for (const key in sorter) {
-    if (allowedSorter.includes(key)) {
+    if (!allowedSorter.length || allowedSorter.includes(key)) {
       const value = sorter[key];
       mongoSorter[key] = value === 'desc' || value === 'descending' || value === -1 ? -1 : 1;
     }

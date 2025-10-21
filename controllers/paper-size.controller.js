@@ -1,10 +1,14 @@
 const { validationResult } = require('express-validator');
 
 const PaperSize = require('../models/paper-size');
+const utils = require('../utils');
 
 exports.getPaperSizesCount = async (req, res, next) => {
+  const { filter } = req.query;
+  const { query } = utils.prepareFilterAndSort(filter, '', [], []);
+
   try {
-    const count = await PaperSize.countDocuments();
+    const count = await PaperSize.countDocuments(query);
 
     res.status(200).json(count);
   } catch (error) {
@@ -40,10 +44,11 @@ exports.getPaperSize = async (req, res, next) => {
 };
 
 exports.getPaperSizes = async (req, res, next) => {
-  const { skip, limit } = req.query;
+  const { skip, limit, filter, sort } = req.query;
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, [], []);
 
   try {
-    const paperSizes = await PaperSize.find().skip(skip).limit(limit);
+    const paperSizes = await PaperSize.find(query).sort(sorter).skip(skip).limit(limit);
 
     res.status(200).json(paperSizes);
   } catch (error) {
@@ -73,7 +78,6 @@ exports.createPaperSize = async (req, res, next) => {
     const paperSizeObj = new PaperSize({ ...input });
 
     const paperSize = await paperSizeObj.save();
-
 
     res.status(201).json(paperSize);
   } catch (error) {

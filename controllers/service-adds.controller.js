@@ -1,10 +1,13 @@
 const { validationResult } = require('express-validator');
 
 const ServiceAdd = require('../models/service-adds');
+const utils = require('../utils');
 
 exports.getServiceAddsCount = async (req, res, next) => {
+  const { filter } = req.query;
+  const { query } = utils.prepareFilterAndSort(filter, '', [], []);
   try {
-    const count = await ServiceAdd.countDocuments();
+    const count = await ServiceAdd.countDocuments(query);
 
     res.status(200).json(count);
   } catch (error) {
@@ -40,16 +43,15 @@ exports.getServiceAdd = async (req, res, next) => {
 };
 
 exports.getServiceAdds = async (req, res, next) => {
-  const { addType, skip, limit } = req.query;
+  const { skip, limit, filter, sort } = req.query;
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, [], []);
 
-  let query = {};
-
-  if (addType && (addType === 'K' || addType === 'O')) {
-    query.service = addType;
+  if (query.addType && (query.addType === 'K' || query.addType === 'O')) {
+    query.service = query.addType;
   }
 
   try {
-    const additions = await ServiceAdd.find(query).skip(skip).limit(limit);
+    const additions = await ServiceAdd.find(query).sort(sorter).skip(skip).limit(limit);
 
     res.status(200).json(additions);
   } catch (error) {

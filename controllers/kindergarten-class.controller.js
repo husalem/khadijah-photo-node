@@ -2,6 +2,10 @@ const { validationResult } = require('express-validator');
 
 const KindergartenClass = require('../models/kindergarten-class');
 const Kindergarten = require('../models/kindergarten');
+const utils = require('../utils');
+
+const allowedFilters = ['kindergarten', 'name', 'active', 'createdAt', 'updatedAt'];
+const allowedSorters = ['name', 'createdAt', 'updatedAt'];
 
 exports.getKindergartenClass = async (req, res, next) => {
   const { classId } = req.params;
@@ -27,10 +31,11 @@ exports.getKindergartenClass = async (req, res, next) => {
 };
 
 exports.getKindergartenClasses = async (req, res, next) => {
-  const { skip, limit } = req.query;
+  const { skip, limit, filter, sort } = req.query;
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, allowedFilters, allowedSorters);
 
   try {
-    const kindergartenClasses = await KindergartenClass.find().skip(skip).limit(limit).populate('kindergarten');
+    const kindergartenClasses = await KindergartenClass.find(query).sort(sorter).skip(skip).limit(limit).populate('kindergarten');
 
     res.status(200).json(kindergartenClasses);
   } catch (error) {
@@ -43,8 +48,11 @@ exports.getKindergartenClasses = async (req, res, next) => {
 };
 
 exports.getKindergartenClassesCount = async (req, res, next) => {
+  const { filter } = req.query;
+  const { query } = utils.prepareFilterAndSort(filter, '', allowedFilters, []);
+
   try {
-    const count = await KindergartenClass.countDocuments();
+    const count = await KindergartenClass.countDocuments(query);
 
     res.status(200).json(count);
   } catch (error) {
@@ -57,10 +65,14 @@ exports.getKindergartenClassesCount = async (req, res, next) => {
 };
 
 exports.getKindergartenClassesByKindergarten = async (req, res, next) => {
+  const { skip, limit, filter, sort } = req.query;
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, allowedFilters, allowedSorters);
   const { kindergartenId } = req.params;
 
+  query.kindergarten = kindergartenId;
+
   try {
-    const kindergartenClasses = await KindergartenClass.find({ kindergarten: kindergartenId }).populate('kindergarten');
+    const kindergartenClasses = await KindergartenClass.find(query).sort(sorter).skip(skip).limit(limit).populate('kindergarten');
 
     res.status(200).json(kindergartenClasses);
   } catch (error) {
@@ -73,10 +85,14 @@ exports.getKindergartenClassesByKindergarten = async (req, res, next) => {
 };
 
 exports.getKindergartenClassesCountByKindergarten = async (req, res, next) => {
+  const { filter } = req.query;
+  const { query } = utils.prepareFilterAndSort(filter, '', allowedFilters, []);
   const { kindergartenId } = req.params;
 
+  query.kindergarten = kindergartenId;
+
   try {
-    const count = await KindergartenClass.countDocuments({ kindergarten: kindergartenId });
+    const count = await KindergartenClass.countDocuments(query);
 
     res.status(200).json(count);
   } catch (error) {

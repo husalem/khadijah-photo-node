@@ -5,17 +5,40 @@ const ServiceRequest = require('../models/service-request');
 const Theme = require('../models/theme');
 const Package = require('../models/package');
 const Addition = require('../models/service-adds');
+const utils = require('../utils');
+
+const allowedFilters = ['clientName', 'netPrice', 'status', 'createdAt', 'updatedAt'];
+const allowedSorters = ['clientName', 'netPrice', 'createdAt', 'updatedAt'];
+
+const populate = [
+  {
+    path: 'user',
+    select: ['phone', 'email']
+  },
+  {
+    path: 'type',
+    select: ['name']
+  },
+  {
+    path: 'theme',
+    select: ['title']
+  },
+  {
+    path: 'package',
+    select: ['name']
+  },
+  {
+    path: 'additions',
+    select: ['name', 'netPrice']
+  }
+];
 
 exports.getServiceRequestsCount = async (req, res, next) => {
-  const { status } = req.query;
-  let query = {};
-
-  if (status) {
-    query.status = status;
-  }
+  const { filter } = req.query;
+  const { query } = utils.prepareFilterAndSort(filter, '', allowedFilters, []);
 
   try {
-    const count = await ServiceRequest.find(query).countDocuments();
+    const count = await ServiceRequest.countDocuments(query);
 
     res.status(200).json(count);
   } catch (error) {
@@ -74,20 +97,16 @@ exports.getServiceRequest = async (req, res, next) => {
 };
 
 exports.getServiceRequests = async (req, res, next) => {
-  const { skip, limit, status } = req.query;
+  const { skip, limit, filter, sort } = req.query;
   const { userId, userRole } = req;
-  let query = {};
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, allowedFilters, allowedSorters);
 
   if (userRole !== '0') {
     query.user = userId;
   }
 
-  if (status) {
-    query.status = status;
-  }
-
   try {
-    const requests = await ServiceRequest.find(query).skip(skip).limit(limit);
+    const requests = await ServiceRequest.find(query).sort(sorter).skip(skip).limit(limit).populate(populate);
 
     res.status(200).json(requests);
   } catch (error) {

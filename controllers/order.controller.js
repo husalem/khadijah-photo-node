@@ -3,15 +3,12 @@ const mongoose = require('mongoose');
 const User = require('../models/user');
 const KindergartenRequest = require('../models/kindergarten-request');
 const ServiceRequest = require('../models/service-request');
+const utils = require('../utils');
 
 exports.getOrdersCount = async (req, res, next) => {
-  const { status } = req.query;
+  const { filter } = req.query;
   const { userId } = req;
-  let query = {};
-
-  if (status) {
-    query.status = status;
-  }
+  const { query } = utils.prepareFilterAndSort(filter, '', ['status'], []);
 
   try {
     if (!userId) {
@@ -23,8 +20,8 @@ exports.getOrdersCount = async (req, res, next) => {
 
     query.user = userId;
 
-    const kReqCount = await KindergartenRequest.find(query).countDocuments();
-    const sReqCount = await ServiceRequest.find(query).countDocuments();
+    const kReqCount = await KindergartenRequest.find().countDocuments(query);
+    const sReqCount = await ServiceRequest.find().countDocuments(query);
 
     res.status(200).json(kReqCount + sReqCount);
   } catch (error) {
@@ -37,9 +34,9 @@ exports.getOrdersCount = async (req, res, next) => {
 };
 
 exports.getOrders = async (req, res, next) => {
-  const { skip, limit, status } = req.query;
+  const { skip, limit, filter } = req.query;
   const { userId } = req;
-  let query = {};
+  const { query } = utils.prepareFilterAndSort(filter, '', ['status'], []);
   let start,
     end = undefined;
 
@@ -49,10 +46,6 @@ exports.getOrders = async (req, res, next) => {
 
   if (skip && limit) {
     end = skip + limit;
-  }
-
-  if (status) {
-    query.status = status;
   }
 
   try {

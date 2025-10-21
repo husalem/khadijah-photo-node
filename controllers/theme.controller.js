@@ -5,9 +5,15 @@ const { validationResult } = require('express-validator');
 const Theme = require('../models/theme');
 const utils = require('../utils');
 
+const allowedFilters = ['title', 'description', 'tags', 'showInStudio', 'createdAt', 'updatedAt'];
+const allowedSorters = ['title', 'showInStudio', 'createdAt', 'updatedAt'];
+
 exports.getThemesCount = async (req, res, next) => {
+  const { filter } = req.query;
+  const { query } = utils.prepareFilterAndSort(filter, '', allowedFilters, []);
+
   try {
-    const count = await Theme.countDocuments();
+    const count = await Theme.countDocuments(query);
 
     res.status(200).json(count);
   } catch (error) {
@@ -43,10 +49,11 @@ exports.getTheme = async (req, res, next) => {
 };
 
 exports.getThemes = async (req, res, next) => {
-  const { skip, limit } = req.query;
+  const { skip, limit, filter, sort } = req.query;
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, allowedFilters, allowedSorters);
 
   try {
-    const themes = await Theme.find().skip(skip).limit(limit);
+    const themes = await Theme.find(query).sort(sorter).skip(skip).limit(limit);
 
     res.status(200).json(themes);
   } catch (error) {
@@ -95,9 +102,7 @@ exports.createTheme = async (req, res, next) => {
       if (themeImage && fs.existsSync(themeImage.path)) {
         fs.unlink(themeImage.path, (error) => {
           if (error) {
-            console.log(
-              `Theme image ${themeImage.path} should have been deleted and it has not due to an error.`
-            );
+            console.log(`Theme image ${themeImage.path} should have been deleted and it has not due to an error.`);
           }
         });
       }
@@ -137,23 +142,21 @@ exports.updateTheme = async (req, res, next) => {
     }
 
     let loadedTheme = await Theme.findById(themeId);
-    
+
     // If file was uploaded, delete the old files
     if (themeImages.length) {
       loadedTheme.imagesPaths.map((imagePath) => {
         if (fs.existsSync(imagePath)) {
           fs.unlink(imagePath, (error) => {
             if (error) {
-              console.log(
-                `Theme image ${imagePath} should have been deleted and it has not due to an error.`
-              );
+              console.log(`Theme image ${imagePath} should have been deleted and it has not due to an error.`);
             }
-  
+
             console.log(`Theme image ${imagePath} was replaced`);
           });
         }
       });
-      
+
       // Update the paths
       input.imagesPaths = themeImages.map((image) => image.path);
     }
@@ -174,9 +177,7 @@ exports.updateTheme = async (req, res, next) => {
       if (themeImage && fs.existsSync(themeImage.path)) {
         fs.unlink(themeImage.path, (error) => {
           if (error) {
-            console.log(
-              `Theme image ${themeImage.path} should have been deleted and it has not due to an error.`
-            );
+            console.log(`Theme image ${themeImage.path} should have been deleted and it has not due to an error.`);
           }
         });
       }
@@ -207,9 +208,7 @@ exports.deleteTheme = async (req, res, next) => {
       if (fs.existsSync(imagePath)) {
         fs.unlink(imagePath, (error) => {
           if (error) {
-            console.log(
-              `Theme image ${imagePath} should have been deleted and it has not due to an error.`
-            );
+            console.log(`Theme image ${imagePath} should have been deleted and it has not due to an error.`);
           }
         });
       }
