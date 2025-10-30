@@ -4,8 +4,8 @@ const KindergartenClass = require('../models/kindergarten-class');
 const Kindergarten = require('../models/kindergarten');
 const utils = require('../utils');
 
-const allowedFilters = ['kindergarten', 'name', 'active', 'createdAt', 'updatedAt'];
-const allowedSorters = ['name', 'createdAt', 'updatedAt'];
+const allowedFilters = ['kindergarten', 'name', 'homeroomTeacher', 'active', 'createdAt', 'updatedAt'];
+const allowedSorters = ['name', 'homeroomTeacher', 'createdAt', 'updatedAt'];
 
 exports.getKindergartenClass = async (req, res, next) => {
   const { classId } = req.params;

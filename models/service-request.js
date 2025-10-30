@@ -34,6 +34,7 @@ const requestSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'ServiceAdds'
     }],
+    additionalFees: Number,
     netPrice: Number,
     status: {
       type: String,
@@ -72,7 +73,7 @@ requestSchema.pre(
     // If theme is supplied, get its charge
     const themePrice = theme ? theme.additionalCharge : 0;
 
-    request.netPrice = themePrice + addsPrice + package.netPrice;
+    request.netPrice = themePrice + addsPrice + package.netPrice + (request.additionalFees || 0);
 
     next();
   }

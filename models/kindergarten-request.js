@@ -55,6 +55,7 @@ const serviceSchema = new Schema(
         ref: 'ServiceAdds'
       }
     ],
+    additionalFees: Number,
     netPrice: Number,
     status: {
       type: String,
@@ -130,7 +131,7 @@ serviceSchema.pre(['save', 'updateOne'], async function (next) {
   // Calculate additional services prices
   const addsPrice = additions.reduce((total, service) => total + service.netPrice, 0);
 
-  request.netPrice = costumsPrice + addsPrice;
+  request.netPrice = costumsPrice + addsPrice + (request.additionalFees || 0);
 
   next();
 });
