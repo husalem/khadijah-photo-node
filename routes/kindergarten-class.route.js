@@ -48,6 +48,13 @@ router.post(
   controller.createKindergartenClass
 );
 
+router.post(
+  '/kindergarten-classes/bulk',
+  isAuth,
+  isAdmin,
+  controller.createKindergartenClassesInBulk
+);
+
 router.put(
   '/kindergarten-classes/:classId',
   isAuth,

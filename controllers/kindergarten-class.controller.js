@@ -35,7 +35,11 @@ exports.getKindergartenClasses = async (req, res, next) => {
   const { query, sorter } = utils.prepareFilterAndSort(filter, sort, allowedFilters, allowedSorters);
 
   try {
-    const kindergartenClasses = await KindergartenClass.find(query).sort(sorter).skip(skip).limit(limit).populate('kindergarten');
+    const kindergartenClasses = await KindergartenClass.find(query)
+      .sort(sorter)
+      .skip(skip)
+      .limit(limit)
+      .populate('kindergarten');
 
     res.status(200).json(kindergartenClasses);
   } catch (error) {
@@ -72,7 +76,11 @@ exports.getKindergartenClassesByKindergarten = async (req, res, next) => {
   query.kindergarten = kindergartenId;
 
   try {
-    const kindergartenClasses = await KindergartenClass.find(query).sort(sorter).skip(skip).limit(limit).populate('kindergarten');
+    const kindergartenClasses = await KindergartenClass.find(query)
+      .sort(sorter)
+      .skip(skip)
+      .limit(limit)
+      .populate('kindergarten');
 
     res.status(200).json(kindergartenClasses);
   } catch (error) {
@@ -105,7 +113,7 @@ exports.getKindergartenClassesCountByKindergarten = async (req, res, next) => {
 };
 
 exports.createKindergartenClass = async (req, res, next) => {
-  const { name, kindergarten } = req.body;
+  const { name, kindergarten, homeroomTeacher } = req.body;
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -127,12 +135,53 @@ exports.createKindergartenClass = async (req, res, next) => {
 
     const newKindergartenClass = new KindergartenClass({
       kindergarten,
-      name
+      name,
+      homeroomTeacher
     });
 
     const savedKindergartenClass = await newKindergartenClass.save();
 
     res.status(201).json(savedKindergartenClass);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.createKindergartenClassesInBulk = async (req, res, next) => {
+  const { kindergarten, classes } = req.body;
+
+  try {
+    const createdClasses = [];
+    const kindergartenExists = await Kindergarten.findById(kindergarten);
+
+    if (!kindergartenExists) {
+      const error = new Error('Kindergarten does not exist');
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    for (const classData of classes) {
+      const { name, homeroomTeacher } = classData;
+
+      if (!name || name.length < 2) continue;
+
+      createdClasses.push(
+        new KindergartenClass({
+          kindergarten,
+          name,
+          homeroomTeacher
+        })
+      );
+    }
+
+    const result = await KindergartenClass.insertMany(createdClasses);
+
+    res.status(201).json(result);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
