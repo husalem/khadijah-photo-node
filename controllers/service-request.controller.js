@@ -1,4 +1,5 @@
 const { validationResult } = require('express-validator');
+const { nanoid } = require('nanoid');
 
 const User = require('../models/user');
 const ServiceRequest = require('../models/service-request');
@@ -7,7 +8,7 @@ const Package = require('../models/package');
 const Addition = require('../models/service-adds');
 const utils = require('../utils');
 
-const allowedFilters = ['clientName', 'netPrice', 'status', 'createdAt', 'updatedAt'];
+const allowedFilters = ['requestId', 'clientName', 'netPrice', 'status', 'createdAt', 'updatedAt'];
 const allowedSorters = ['clientName', 'netPrice', 'createdAt', 'updatedAt'];
 
 const populate = [
@@ -167,6 +168,9 @@ exports.createServiceRequest = async (req, res, next) => {
         throw error;
       }
     }
+
+    // Set the request ID
+    input.requestId = 'S-' + nanoid(10);
 
     // Set the reqestor
     input.user = userId;

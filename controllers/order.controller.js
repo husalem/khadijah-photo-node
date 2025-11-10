@@ -68,6 +68,7 @@ exports.getOrders = async (req, res, next) => {
       const requests = kRequests
         .map((kItem) => ({
           _id: kItem._id,
+          requestId: kItem.requestId,
           reqType: 'K',
           typeId: '',
           title: 'تصوير روضات',
@@ -78,6 +79,7 @@ exports.getOrders = async (req, res, next) => {
         .concat(
           sRequests.map((sItem) => ({
             _id: sItem._id,
+            requestId: sItem.requestId,
             reqType: 'O',
             typeId: sItem.type._id.toString(),
             title: 'تصوير ' + sItem.type.name,

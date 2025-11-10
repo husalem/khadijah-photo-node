@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
+const { nanoid } = require('nanoid');
 
 const User = require('../models/user');
 const Request = require('../models/kindergarten-request');
@@ -7,7 +8,7 @@ const Costum = require('../models/costum');
 const Addition = require('../models/service-adds');
 const utils = require('../utils');
 
-const allowedFilters = ['kindergarten', 'kindergartenClass', 'childName', 'netPrice', 'status', 'updatedAt'];
+const allowedFilters = ['requestId', 'kindergarten', 'kindergartenClass', 'childName', 'netPrice', 'status', 'updatedAt'];
 const allowedSorters = ['kindergarten', 'childName', 'netPrice', 'createdAt', 'updatedAt'];
 
 const populate = [
@@ -157,6 +158,9 @@ exports.createRequest = async (req, res, next) => {
         throw error;
       }
     }
+
+    // Set the request ID
+    input.requestId = 'K-' + nanoid(10);
 
     // Set the reqestor
     input.user = userId;

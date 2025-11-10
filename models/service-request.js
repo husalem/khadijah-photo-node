@@ -8,6 +8,11 @@ const Schema = mongoose.Schema;
 
 const requestSchema = new Schema(
   {
+    requestId: {
+      type: String,
+      required: true,
+      unique: true
+    },
     user: {
       type: Schema.Types.ObjectId,
       ref: 'User',

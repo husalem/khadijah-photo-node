@@ -7,6 +7,11 @@ const Schema = mongoose.Schema;
 
 const serviceSchema = new Schema(
   {
+    requestId: {
+      type: String,
+      required: true,
+      unique: true
+    },
     user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
