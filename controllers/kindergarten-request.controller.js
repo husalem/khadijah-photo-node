@@ -8,7 +8,15 @@ const Costum = require('../models/costum');
 const Addition = require('../models/service-adds');
 const utils = require('../utils');
 
-const allowedFilters = ['requestId', 'kindergarten', 'kindergartenClass', 'childName', 'netPrice', 'status', 'updatedAt'];
+const allowedFilters = [
+  'requestId',
+  'kindergarten',
+  'kindergartenClass',
+  'childName',
+  'netPrice',
+  'status',
+  'updatedAt'
+];
 const allowedSorters = ['kindergarten', 'childName', 'netPrice', 'createdAt', 'updatedAt'];
 
 const populate = [
@@ -22,7 +30,7 @@ const populate = [
   },
   {
     path: 'kindergartenClass',
-    select: ['name', 'active']
+    select: ['name', 'homeroomTeacher', 'active']
   },
   {
     path: 'costums.costum',
@@ -219,34 +227,74 @@ exports.updateRequest = async (req, res, next) => {
       throw error;
     }
 
+    // Check mandatory fields
+    const mandatoryFields = new Set(['kindergarten', 'kindergartenClass', 'childName']);
+
+    Object.keys(input).forEach((key) => {
+      if (mandatoryFields.has(key) && input[key].trim() === '') {
+        const error = new Error('Missing parameter: ' + key);
+        error.statusCode = 400;
+        throw error;
+      }
+    });
+
     // Format the costums structure to comply the model
-    input.costums = input.costums.map((item) => {
-      const costum = item.costum._id;
-      const size = item.size._id;
-      const additions = item.additions.map((addition) => addition._id);
+    // Build an update document with only provided properties
+    const updateDoc = {};
 
-      return { costum, size, additions };
-    });
+    // Handle costums only if provided
+    if (Object.prototype.hasOwnProperty.call(input, 'costums')) {
+      if (!Array.isArray(input.costums)) {
+        const error = new Error('Costums must be an array');
+        error.statusCode = 400;
 
-    // Get costums IDs from input
-    const costumsIds = input.costums.map((item) => {
-      const costumId = item.costum instanceof mongoose.Types.ObjectId ? item.costum._id.toString() : item.costum;
+        throw error;
+      } else if (input.costums.length === 0) {
+        const error = new Error('Request must have one costum at least');
+        error.statusCode = 400;
 
-      return costumId;
-    });
+        throw error;
+      }
 
-    // Validate costums
-    const costums = await Costum.find({ _id: { $in: costumsIds } });
+      const formattedCostums = input.costums.map((item) => {
+        const costum = item.costum._id ? item.costum._id : item.costum;
+        const size = item.size._id ? item.size._id : item.size;
+        const additions = Array.isArray(item.additions)
+          ? item.additions.map((addition) => (addition._id ? addition._id : addition))
+          : [];
 
-    if (costums.length !== costumsIds.length) {
-      const error = new Error('One costum at least does not exist');
-      error.statusCode = 404;
+        return { costum, size, additions };
+      });
 
-      throw error;
+      // Get costums IDs from input
+      const costumsIds = formattedCostums.map((item) => {
+        const costumId = item.costum instanceof mongoose.Types.ObjectId ? item.costum._id.toString() : item.costum;
+
+        return costumId;
+      });
+
+      // Validate costums
+      const costums = await Costum.find({ _id: { $in: costumsIds } });
+
+      if (costums.length !== costumsIds.length) {
+        const error = new Error('One costum at least does not exist');
+        error.statusCode = 404;
+
+        throw error;
+      }
+
+      updateDoc.costums = formattedCostums;
     }
 
-    // Validate service adds
-    if (input.additions && Array.isArray(input.additions)) {
+    // Handle additions only if provided
+    if (Object.prototype.hasOwnProperty.call(input, 'additions')) {
+      if (!Array.isArray(input.additions)) {
+        const error = new Error('Additions must be an array');
+        error.statusCode = 400;
+
+        throw error;
+      }
+
       const additions = await Addition.find({ _id: { $in: input.additions } });
 
       if (additions.length !== input.additions.length) {
@@ -255,9 +303,70 @@ exports.updateRequest = async (req, res, next) => {
 
         throw error;
       }
+
+      updateDoc.additions = input.additions;
     }
 
-    const result = await Request.updateOne({ _id: requestId }, { ...input });
+    // Copy other provided fields except protected ones
+    const protectedFields = new Set(['_id', 'user', 'requestId', 'netPrice', 'createdAt', 'updatedAt']);
+
+    Object.keys(input).forEach((key) => {
+      if (key === 'costums' || key === 'additions') return;
+      if (protectedFields.has(key)) return;
+
+      // Normalize status to uppercase to match schema setter (updateOne bypasses setters)
+      if (key === 'status' && typeof input.status === 'string') {
+        updateDoc.status = input.status.toUpperCase();
+        return;
+      }
+
+      updateDoc[key] = input[key];
+    });
+
+    if (Object.keys(updateDoc).length === 0) {
+      const error = new Error('No updatable fields provided');
+      error.statusCode = 400;
+
+      throw error;
+    }
+
+    const result = await Request.updateOne({ _id: requestId }, { ...request._doc, ...updateDoc });
+
+    if (!result.matchedCount) {
+      const error = new Error('Request does not exist');
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    res.status(201).json(result);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.updateRequestStatus = async (req, res, next) => {
+  const { requestId } = req.params;
+  const { status } = req.body;
+  const errors = validationResult(req);
+
+  try {
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr;
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+
+      throw error;
+    }
+
+    const result = await Request.updateOne({ _id: requestId }, { status });
 
     if (!result.matchedCount) {
       const error = new Error('Request does not exist');

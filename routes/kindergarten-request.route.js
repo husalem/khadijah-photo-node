@@ -41,12 +41,17 @@ router.post(
 router.put(
   '/kindergarten-requests/:requestId',
   isAuth,
-  body(['kindergarten', 'kindergartenClass', 'childName'])
+  requestController.updateRequest
+);
+
+router.patch(
+  '/kindergarten-requests/:requestId/status',
+  isAuth,
+  isAdmin,
+  body(['status'])
     .trim()
     .notEmpty().withMessage('Missing parameter'),
-  body('costums')
-    .isArray({ min: 1 }).withMessage('Request must have one costum at least'),
-  requestController.updateRequest
+  requestController.updateRequestStatus
 );
 
 router.delete(
