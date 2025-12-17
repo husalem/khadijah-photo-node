@@ -60,7 +60,10 @@ const serviceSchema = new Schema(
         ref: 'ServiceAdds'
       }
     ],
-    additionalFees: Number,
+    additionalFees: {
+      type: Number,
+      default: 0
+    },
     netPrice: Number,
     status: {
       type: String,
@@ -83,6 +86,13 @@ serviceSchema.pre(['save', 'updateOne'], async function (next) {
   let costAdds = [];
   let additions = [];
   let costumsPrice = 0;
+  const fees = request.additionalFees ? request.additionalFees : 0;
+
+  // if costums not provied, skip price calculation
+  if (!Array.isArray(request.costums) || !request.costums.length) {
+    return;
+  }
+
 
   // Extract all distinct sizes and additions of costums
   request.costums.map((item) => {
@@ -136,9 +146,9 @@ serviceSchema.pre(['save', 'updateOne'], async function (next) {
   // Calculate additional services prices
   const addsPrice = additions.reduce((total, service) => total + service.netPrice, 0);
 
-  request.netPrice = costumsPrice + addsPrice + (request.additionalFees || 0);
+  request.netPrice = costumsPrice + addsPrice + fees;
 
-  next();
+  // next();
 });
 
 module.exports = mongoose.model('KindergartenRequest', serviceSchema);

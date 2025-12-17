@@ -170,7 +170,7 @@ exports.createServiceRequest = async (req, res, next) => {
     }
 
     // Set the request ID
-    input.requestId = 'S-' + nanoid(10);
+    input.requestId = 'S-' + nanoid(6).toUpperCase();
 
     // Set the reqestor
     input.user = userId;
@@ -289,6 +289,149 @@ exports.deleteServiceRequest = async (req, res, next) => {
     await ServiceRequest.deleteOne({ _id: requestId });
 
     res.status(201).json({ message: 'Service request was deleted' });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.updateRequestStatus = async (req, res, next) => {
+  const { requestId } = req.params;
+  const { status } = req.body;
+  const errors = validationResult(req);
+
+  try {
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr;
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+
+      throw error;
+    }
+
+    const request = await ServiceRequest.findById(requestId);
+
+    if (!request) {
+      const error = new Error('Request does not exist');
+      error.statusCode = 404;
+
+      throw error;
+    } else if (!['INIT', 'PROC'].includes(request.status)) {
+      const error = new Error('لا يمكن التعديل على هذا الطلب');
+      error.statusCode = 400;
+
+      throw error;
+    }
+
+    request.status = status;
+
+    await request.save();
+
+    res.status(201).json(request);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.updateRequestStatusBulk = async (req, res, next) => {
+  const { status, requests } = req.body;
+  const errors = validationResult(req);
+
+  try {
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr;
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+
+      throw error;
+    }
+
+    // Avoid updating non INIT, PROC requests
+    const updatableReqs = await ServiceRequest.find(
+      {
+        _id: { $in: requests },
+        status: { $in: ['INIT', 'PROC'] }
+      },
+      { _id: 1 }
+    );
+
+    if (!updatableReqs.length) {
+      const error = new Error('No requets found to be updated');
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    const updatableIds = updatableReqs.map((record) => record._id.toString())
+
+    const result = await ServiceRequest.updateMany( { _id: { $in: updatableIds } }, { status });
+
+    if (!result.modifiedCount) {
+      const error = new Error('No records were modified');
+      error.statusCode = 500;
+
+      throw error;
+    }
+
+    res.status(201).json(result);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.updateRequestAdditionalFees = async (req, res, next) => {
+  const { requestId } = req.params;
+  const { fees } = req.body;
+  const errors = validationResult(req);
+
+  try {
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr;
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+
+      throw error;
+    }
+
+    const request = await ServiceRequest.findById(requestId);
+
+    if (!request) {
+      const error = new Error('Request does not exist');
+      error.statusCode = 404;
+
+      throw error;
+    } else if (!['INIT', 'PROC'].includes(request.status)) {
+      const error = new Error('لا يمكن التعديل على هذا الطلب');
+      error.statusCode = 400;
+
+      throw error;
+    }
+
+    request.additionalFees = fees;
+
+    await request.save();
+
+    res.status(201).json(request);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

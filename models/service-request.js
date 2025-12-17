@@ -35,10 +35,12 @@ const requestSchema = new Schema(
     },
     appointment: String,
     remarks: String,
-    additions: [{
-      type: Schema.Types.ObjectId,
-      ref: 'ServiceAdds'
-    }],
+    additions: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'ServiceAdds'
+      }
+    ],
     additionalFees: Number,
     netPrice: Number,
     status: {
@@ -53,35 +55,33 @@ const requestSchema = new Schema(
 
 requestSchema.index({ clientName: 1 }, { collation: { locale: 'ar', strength: 1 } });
 
-requestSchema.pre(
-  ['save', 'updateOne'],
-  async function (next) {
-    let request = this.op === 'updateOne' ? this._update : this;
-    
-    let theme;
-    let additions = [];
+requestSchema.pre(['save', 'updateOne'], async function (next) {
+  let request = this.op === 'updateOne' ? this._update : this;
 
-    if (request.theme) {
-      theme = await Theme.findById(request.theme);
-    }
+  let theme;
+  let additions = [];
+  const fees = request.additionalFees ? request.additionalFees : 0;
 
-    if (request.additions?.length) {
-      // const additionsIds = request.additions.map((objectId) => objectId._id);
-      additions = await Addition.find({ _id: { $in: request.additions } });
-    }
-
-    const package = await Package.findById(request.package);
-
-    // Calculate additional services prices
-    const addsPrice = additions.reduce((total, service) => total + service.netPrice, 0);
-
-    // If theme is supplied, get its charge
-    const themePrice = theme ? theme.additionalCharge : 0;
-
-    request.netPrice = themePrice + addsPrice + package.netPrice + (request.additionalFees || 0);
-
-    next();
+  if (request.theme) {
+    theme = await Theme.findById(request.theme);
   }
-);
+
+  if (request.additions?.length) {
+    // const additionsIds = request.additions.map((objectId) => objectId._id);
+    additions = await Addition.find({ _id: { $in: request.additions } });
+  }
+
+  const package = await Package.findById(request.package);
+
+  // Calculate additional services prices
+  const addsPrice = additions.reduce((total, service) => total + service.netPrice, 0);
+
+  // If theme is supplied, get its charge
+  const themePrice = theme ? theme.additionalCharge : 0;
+
+  request.netPrice = themePrice + addsPrice + package.netPrice + fees;
+
+  // next();
+});
 
 module.exports = mongoose.model('ServiceRequest', requestSchema);
