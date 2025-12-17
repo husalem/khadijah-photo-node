@@ -45,6 +45,38 @@ router.put(
 );
 
 router.patch(
+  '/service-requests/status/bulk',
+  isAuth,
+  isAdmin,
+  body(['status', 'requests'])
+    .trim()
+    .notEmpty().withMessage('Missing parameter'),
+  body('requests')
+    .isArray({ min: 1 }).withMessage('requests must be an array with one item at least'),
+  requestController.updateRequestStatusBulk  
+);
+
+router.patch(
+  '/service-requests/:requestId/status',
+  isAuth,
+  isAdmin,
+  body(['status'])
+    .trim()
+    .notEmpty().withMessage('Missing parameter'),
+  requestController.updateRequestStatus
+);
+
+router.patch(
+  '/service-requests/:requestId/fees',
+  isAuth,
+  isAdmin,
+  body(['fees'])
+    .trim()
+    .notEmpty().withMessage('Missing parameter'),
+  requestController.updateRequestAdditionalFees
+);
+
+router.patch(
   '/service-requests/cancel/:requestId',
   isAuth,
   requestController.cancelServiceRequest
