@@ -36,6 +36,13 @@ router.get(
   controller.getKindergartenClassesByKindergarten
 );
 
+router.get(
+  '/kindergarten-classes/in-request/:classId',
+  isAuth,
+  isAdmin,
+  controller.isInRequest
+);
+
 router.post(
   '/kindergarten-classes',
   isAuth,

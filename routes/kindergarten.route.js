@@ -33,6 +33,19 @@ router.post(
   controller.createKindergarten
 );
 
+router.post(
+  '/kindergartens-deep',
+  isAuth,
+  isAdmin,
+  body(['name', 'district'])
+    .trim()
+    .notEmpty().withMessage('Missing parameter')
+    .isLength({ min: 3 }).withMessage('Parameter must be of length 3 at least'),
+  body(['classes'])
+    .isArray({ min: 1 }).withMessage('At least one class must be passed'),
+  controller.createKindergartenWithClasses
+);
+
 router.put(
   '/kindergartens/:kindergartenId',
   isAuth,
@@ -42,6 +55,17 @@ router.put(
     .notEmpty().withMessage('Missing parameter')
     .isLength({ min: 3 }).withMessage('Parameter must be of length 3 at least'),
   controller.updateKindergarten
+);
+
+router.put(
+  '/kindergartens-deep/:kindergartenId',
+  isAuth,
+  isAdmin,
+  body(['name', 'district'])
+    .trim()
+    .notEmpty().withMessage('Missing parameter')
+    .isLength({ min: 3 }).withMessage('Parameter must be of length 3 at least'),
+  controller.updateKindergartenWithClasses
 );
 
 router.delete(

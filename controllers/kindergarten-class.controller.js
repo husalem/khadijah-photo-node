@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator');
 
 const KindergartenClass = require('../models/kindergarten-class');
 const Kindergarten = require('../models/kindergarten');
+const Request = require('../models/kindergarten-request');
 const utils = require('../utils');
 
 const allowedFilters = ['kindergarten', 'name', 'homeroomTeacher', 'active', 'createdAt', 'updatedAt'];
@@ -103,6 +104,22 @@ exports.getKindergartenClassesCountByKindergarten = async (req, res, next) => {
     const count = await KindergartenClass.countDocuments(query);
 
     res.status(200).json(count);
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.isInRequest = async (req, res, next) => {
+  const { classId } = req.params;
+
+  try {
+    const requests = await Request.find({ kindergartenClass: classId });
+
+    res.status(200).json({ inRequest: requests.length > 0 });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
