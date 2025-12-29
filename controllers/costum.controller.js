@@ -1,13 +1,22 @@
 const fs = require('fs');
 
 const { validationResult } = require('express-validator');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 const Costum = require('../models/costum');
+const PaperSize = require('../models/paper-size');
 const utils = require('../utils');
 
 const allowedFilters = ['title', 'tags', 'withFriend'];
-const allowedSorters = ['title'];
+const allowedSorters = ['title', 'createdAt'];
 const populate = [{ path: 'sizes', select: ['size', 'netPrice'] }];
+
+const resOpts = {
+  flattenObjectIds: true,
+  schemaFieldsOnly: true,
+  versionKey: false
+};
 
 exports.getCostumsCount = async (req, res, next) => {
   const { filter } = req.query;
@@ -89,12 +98,9 @@ exports.createCostum = async (req, res, next) => {
       throw error;
     }
 
-    let sizeArray = [];
-    if (input.sizes) {
-      const array = JSON.parse(input.sizes);
-      if (array?.length) {
-        input.sizes = array.map((obj) => obj.size);
-      }
+    const array = JSON.parse(input.sizes);
+    if (array?.length) {
+      input.sizes = array.map((obj) => new ObjectId(obj.size));
     }
 
     input.imagePath = costumImage.path;
@@ -102,8 +108,9 @@ exports.createCostum = async (req, res, next) => {
     const costumObj = new Costum({ ...input });
 
     const costum = await costumObj.save();
+    const flatCostum = costum.toObject(resOpts);
 
-    res.status(201).json(costum);
+    res.status(201).json(flatCostum);
   } catch (error) {
     if (fs.existsSync(costumImage.path)) {
       fs.unlink(costumImage.path, (error) => {
@@ -149,7 +156,7 @@ exports.updateCostum = async (req, res, next) => {
             console.log(`Costum ${loadedCostum.imagePath} should have been deleted and it has not due to an error.`);
           }
 
-          console.log(`Costum ${loadedCostum.title} was replaced`);
+          console.log(`Costum image of "${loadedCostum.title}" was replaced`);
         });
       }
 
@@ -157,16 +164,25 @@ exports.updateCostum = async (req, res, next) => {
       input.imagePath = costumImage.path;
     }
 
-    const result = await Costum.updateOne({ _id: costumId }, { ...input });
+    const array = JSON.parse(input.sizes);
+    if (array?.length) {
+      input.sizes = array.map((obj) => new ObjectId(obj.size));
+    } else {
+      input.sizes = [];
+    }
 
-    if (!result.matchedCount) {
+    const result = await Costum.findByIdAndUpdate({ _id: costumId }, { ...input }, { new: true });
+
+    if (!result) {
       const error = new Error('Costum does not exist');
       error.statusCode = 404;
 
       throw error;
     }
 
-    res.status(201).json(result);
+    const flatCostum = result.toObject(resOpts);
+
+    res.status(201).json(flatCostum);
   } catch (error) {
     if (fs.existsSync(costumImage.path)) {
       fs.unlink(costumImage.path, (error) => {
