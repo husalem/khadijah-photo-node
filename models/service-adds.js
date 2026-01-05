@@ -32,8 +32,8 @@ const serviceAddsSchema = new Schema(
 
 serviceAddsSchema.index({ name: 1 }, { collation: { locale: 'ar', strength: 1 } });
 
-serviceAddsSchema.pre(['save', 'updateOne'], function (next) {
-  let addition = this.op === 'updateOne' ? this._update : this;
+serviceAddsSchema.pre(['save', 'updateOne', 'findOneAndUpdate'], async function (next) {
+  let addition = this.op === 'updateOne' || this.op === 'findOneAndUpdate' ? this._update : this;
 
   addition.netPrice = addition.price;
 
@@ -41,7 +41,7 @@ serviceAddsSchema.pre(['save', 'updateOne'], function (next) {
     addition.netPrice = addition.price - (addition.price * addition.discount) / 100;
   }
 
-  next();
+  // next();
 });
 
 module.exports = mongoose.model('ServiceAdds', serviceAddsSchema);

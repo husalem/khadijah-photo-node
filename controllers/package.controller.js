@@ -78,8 +78,9 @@ exports.createPackage = async (req, res, next) => {
     const packageObj = new Package({ ...input });
 
     const package = await packageObj.save();
+    const flatPackage = package.toObject(utils.resOpts);
 
-    res.status(201).json(package);
+    res.status(201).json(flatPackage);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -106,16 +107,18 @@ exports.updatePackage = async (req, res, next) => {
       throw error;
     }
 
-    const result = await Package.updateOne({ _id: packageId }, { ...input });
+    const result = await Package.findOneAndUpdate({ _id: packageId }, { ...input }, { new: true });
 
-    if (!result.matchedCount) {
+    if (!result) {
       const error = new Error('Package does not exist');
       error.statusCode = 404;
 
       throw error;
     }
 
-    res.status(201).json(result);
+    const flatPackage = result.toObject(utils.resOpts);
+
+    res.status(201).json(flatPackage);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

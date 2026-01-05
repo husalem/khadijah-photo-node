@@ -81,9 +81,9 @@ exports.createServiceAdd = async (req, res, next) => {
     const additionObj = new ServiceAdd({ ...input });
 
     const addition = await additionObj.save();
+    const flatAddition = addition.toObject(utils.resOpts);
 
-
-    res.status(201).json(addition);
+    res.status(201).json(flatAddition);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -110,16 +110,18 @@ exports.updateServiceAdd = async (req, res, next) => {
       throw error;
     }
 
-    const result = await ServiceAdd.updateOne({ _id: serviceAddId }, { ...input });
+    const result = await ServiceAdd.findOneAndUpdate({ _id: serviceAddId }, { ...input }, { new: true });
 
-    if (!result.matchedCount) {
+    if (!result) {
       const error = new Error('Service-add does not exist');
       error.statusCode = 404;
 
       throw error;
     }
 
-    res.status(201).json(result);
+    const flatAddition = result.toObject(utils.resOpts);
+
+    res.status(201).json(flatAddition);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

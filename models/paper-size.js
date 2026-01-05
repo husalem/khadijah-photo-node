@@ -21,8 +21,8 @@ const paperSizeSchema = new Schema(
   { timestamps: true }
 );
 
-paperSizeSchema.pre(['save', 'updateOne'], function (next) {
-  let size = this.op === 'updateOne' ? this._update : this;
+paperSizeSchema.pre(['save', 'updateOne', 'findOneAndUpdate'], async function (next) {
+  let size = this.op === 'updateOne' || this.op === 'findOneAndUpdate' ? this._update : this;
 
   size.netPrice = size.price;
 
@@ -30,7 +30,7 @@ paperSizeSchema.pre(['save', 'updateOne'], function (next) {
     size.netPrice = size.price - (size.price * size.discount) / 100;
   }
 
-  next();
+  // next();
 });
 
 module.exports = mongoose.model('PaperSize', paperSizeSchema);
