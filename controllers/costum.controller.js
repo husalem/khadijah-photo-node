@@ -5,18 +5,11 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
 const Costum = require('../models/costum');
-const PaperSize = require('../models/paper-size');
 const utils = require('../utils');
 
 const allowedFilters = ['title', 'tags', 'withFriend'];
 const allowedSorters = ['title', 'createdAt'];
 const populate = [{ path: 'sizes', select: ['size', 'netPrice'] }];
-
-const resOpts = {
-  flattenObjectIds: true,
-  schemaFieldsOnly: true,
-  versionKey: false
-};
 
 exports.getCostumsCount = async (req, res, next) => {
   const { filter } = req.query;
@@ -108,7 +101,7 @@ exports.createCostum = async (req, res, next) => {
     const costumObj = new Costum({ ...input });
 
     const costum = await costumObj.save();
-    const flatCostum = costum.toObject(resOpts);
+    const flatCostum = costum.toObject(utils.resOpts);
 
     res.status(201).json(flatCostum);
   } catch (error) {
@@ -180,7 +173,7 @@ exports.updateCostum = async (req, res, next) => {
       throw error;
     }
 
-    const flatCostum = result.toObject(resOpts);
+    const flatCostum = result.toObject(utils.resOpts);
 
     res.status(201).json(flatCostum);
   } catch (error) {
