@@ -154,10 +154,3 @@ exports.prepareFilterAndSort = (filter = '', sort = '', allowedFilters = [], all
 
   return { query, sorter };
 };
-
-// Response Options
-exports.resOpts = {
-  flattenObjectIds: true,
-  schemaFieldsOnly: true,
-  versionKey: false
-};

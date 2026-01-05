@@ -24,8 +24,8 @@ const packageSchema = new Schema(
 
 packageSchema.index({ name: 1 }, { collation: { locale: 'ar', strength: 1 } })
 
-packageSchema.pre(['save', 'updateOne', 'findOneAndUpdate'], async function (next) {
-  let package = this.op === 'updateOne' || this.op === 'findOneAndUpdate' ? this._update : this;
+packageSchema.pre(['save', 'updateOne'], function (next) {
+  let package = this.op === 'updateOne' ? this._update : this;
 
   package.netPrice = package.price;
 
@@ -33,7 +33,7 @@ packageSchema.pre(['save', 'updateOne', 'findOneAndUpdate'], async function (nex
     package.netPrice = package.price - (package.price * package.discount) / 100;
   }
 
-  // next();
+  next();
 });
 
 module.exports = mongoose.model('Package', packageSchema);

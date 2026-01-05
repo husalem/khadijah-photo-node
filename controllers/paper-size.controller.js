@@ -78,9 +78,8 @@ exports.createPaperSize = async (req, res, next) => {
     const paperSizeObj = new PaperSize({ ...input });
 
     const paperSize = await paperSizeObj.save();
-    const flatPs = paperSize.toObject(utils.resOpts);
 
-    res.status(201).json(flatPs);
+    res.status(201).json(paperSize);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -107,18 +106,16 @@ exports.updatePaperSize = async (req, res, next) => {
       throw error;
     }
 
-    const result = await PaperSize.findOneAndUpdate({ _id: paperSizeId }, { ...input }, { new: true });
+    const result = await PaperSize.updateOne({ _id: paperSizeId }, { ...input });
 
-    if (!result) {
+    if (!result.matchedCount) {
       const error = new Error('Paper size does not exist');
       error.statusCode = 404;
 
       throw error;
     }
 
-    const flatPs = result.toObject(utils.resOpts);
-
-    res.status(201).json(flatPs);
+    res.status(201).json(result);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;

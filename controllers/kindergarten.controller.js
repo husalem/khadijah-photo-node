@@ -4,6 +4,12 @@ const Kindergarten = require('../models/kindergarten');
 const KindergartenClass = require('../models/kindergarten-class');
 const utils = require('../utils');
 
+const resOpts = {
+  flattenObjectIds: true,
+  schemaFieldsOnly: true,
+  versionKey: false
+};
+
 exports.getKindergarten = async (req, res, next) => {
   const { kindergartenId } = req.params;
 
@@ -131,7 +137,7 @@ exports.createKindergartenWithClasses = async (req, res, next) => {
     });
 
     const kindergarten = await kinderObject.save();
-    const flatKinder = kindergarten.toObject(utils.resOpts);
+    const flatKinder = kindergarten.toObject(resOpts);
 
     // Create classes
     const classesObjs = classes.map((klass) => {
@@ -145,7 +151,7 @@ exports.createKindergartenWithClasses = async (req, res, next) => {
 
     const kindergartenClasses = await KindergartenClass.insertMany(classesObjs);
     const flatClasses = kindergartenClasses.map((doc) =>
-      doc.toObject(utils.resOpts)
+      doc.toObject(resOpts)
     );
 
     res.status(201).json({ 
@@ -269,9 +275,9 @@ exports.updateKindergartenWithClasses = async (req, res, next) => {
     await KindergartenClass.bulkWrite(writes);
     const savedClasses = await KindergartenClass.find({ kindergarten: kindergartenId });
 
-    const flatKinder = kindergarten.toObject(utils.resOpts);
+    const flatKinder = kindergarten.toObject(resOpts);
     const flatClasses = savedClasses.map((doc) =>
-      doc.toObject(utils.resOpts)
+      doc.toObject(resOpts)
     );
 
     res.status(201).json({ ...flatKinder, classes: [...flatClasses] });
