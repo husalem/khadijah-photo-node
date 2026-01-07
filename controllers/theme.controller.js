@@ -94,8 +94,9 @@ exports.createTheme = async (req, res, next) => {
     const themeObj = new Theme({ ...input });
 
     const theme = await themeObj.save();
+    const flatTheme = theme.toObject(utils.resOpts);
 
-    res.status(201).json(theme);
+    res.status(201).json(flatTheme);
   } catch (error) {
     // Delete file if uploaded in case of error
     themeImages.map((themeImage) => {
@@ -123,7 +124,9 @@ exports.updateTheme = async (req, res, next) => {
   const errors = validationResult(req);
 
   try {
-    if (!themeImages.length) {
+    const imagesPaths = JSON.parse(input.imagesPaths) || [];
+
+    if (!imagesPaths.length && !themeImages.length) {
       const error = new Error('Missing theme images');
       error.statusCode = 400;
 
@@ -142,9 +145,33 @@ exports.updateTheme = async (req, res, next) => {
     }
 
     let loadedTheme = await Theme.findById(themeId);
+    let updatedPaths = [];
+
+    // Compare loadedTheme imagesPaths with the new ones and delete the non-existing
+    loadedTheme.imagesPaths.map((imagePath) => {
+      const exists = imagesPaths.find((img) => img.path === imagePath);
+
+      if (!exists) {
+        if (fs.existsSync(imagePath)) {
+          fs.unlink(imagePath, (error) => {
+            if (error) {
+              console.log(`Theme image ${imagePath} should have been deleted and it has not due to an error.`);
+            }
+
+            console.log(`Theme image ${imagePath} was replaced`);
+          });
+        }
+      } else {
+        updatedPaths.push(imagePath);
+      }
+    });
+
+    input.imagesPaths = updatedPaths.concat(
+      themeImages.map((image) => image.path)
+    );
 
     // If file was uploaded, delete the old files
-    if (themeImages.length) {
+    /* if (themeImages.length) {
       loadedTheme.imagesPaths.map((imagePath) => {
         if (fs.existsSync(imagePath)) {
           fs.unlink(imagePath, (error) => {
@@ -159,18 +186,20 @@ exports.updateTheme = async (req, res, next) => {
 
       // Update the paths
       input.imagesPaths = themeImages.map((image) => image.path);
-    }
+    } */
 
-    const result = await Theme.updateOne({ _id: themeId }, { ...input });
+    const result = await Theme.findOneAndUpdate({ _id: themeId }, { ...input }, { new: true });
 
-    if (!result.matchedCount) {
+    if (!result) {
       const error = new Error('Theme does not exist');
       error.statusCode = 404;
 
       throw error;
     }
 
-    res.status(201).json(result);
+    const flatTheme = result.toObject(utils.resOpts);
+
+    res.status(201).json(flatTheme);
   } catch (error) {
     // Delete file if uploaded in case of error
     themeImages.map((themeImage) => {
