@@ -170,24 +170,6 @@ exports.updateTheme = async (req, res, next) => {
       themeImages.map((image) => image.path)
     );
 
-    // If file was uploaded, delete the old files
-    /* if (themeImages.length) {
-      loadedTheme.imagesPaths.map((imagePath) => {
-        if (fs.existsSync(imagePath)) {
-          fs.unlink(imagePath, (error) => {
-            if (error) {
-              console.log(`Theme image ${imagePath} should have been deleted and it has not due to an error.`);
-            }
-
-            console.log(`Theme image ${imagePath} was replaced`);
-          });
-        }
-      });
-
-      // Update the paths
-      input.imagesPaths = themeImages.map((image) => image.path);
-    } */
-
     const result = await Theme.findOneAndUpdate({ _id: themeId }, { ...input }, { new: true });
 
     if (!result) {

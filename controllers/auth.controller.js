@@ -57,7 +57,7 @@ const mailBody = `
                       <p style="margin:0 0 18px;">لإتمام العملية يرجى الضغط على الرابط أدناه. علماً بأن هذا الرابط صالح لمدة 3 ساعات فقط.</p>
 
                       <p style="margin:0 0 12px;">
-                        <a href="https://admin.khadijahphoto.com/reset-password?token=REPLACEME"
+                        <a href="https://admin.khadijahphoto.com/auth/reset-password?token=REPLACEME"
                            style="display:inline-block; padding:10px 16px; background:#080723; color:#ffffff; text-decoration:none; border-radius:4px;">
                           Reset Password
                         </a>
