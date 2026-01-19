@@ -1,6 +1,7 @@
 const fs = require('fs');
 
 const { validationResult } = require('express-validator');
+const mongoose = require('mongoose');
 
 const ServiceType = require('../models/service-type');
 const utils = require('../utils');
@@ -8,6 +9,7 @@ const utils = require('../utils');
 const allowedFilters = ['name', 'description', 'themeBased', 'createdAt', 'updatedAt'];
 const allowedSorters = ['name', 'themeBased', 'createdAt', 'updatedAt'];
 
+const ObjectId = mongoose.Types.ObjectId;
 const populate = [
   {
     path: 'themes',
@@ -96,11 +98,24 @@ exports.createServiceType = async (req, res, next) => {
       input.thumbnail = thumbnail.path;
     }
 
+    if (input.themeBased === 'true') {
+      const themesIds = input.themes ? JSON.parse(input.themes) : [];
+      if (themesIds.length) {
+        input.themes = themesIds.map((obj) => new ObjectId(obj.theme));
+      }
+    }
+
+    const packagesIds = input.packages ? JSON.parse(input.packages) : [];
+    if (packagesIds.length) {
+      input.packages = packagesIds.map((obj) => new ObjectId(obj.pkg));
+    }
+
     const serviceTypeObj = new ServiceType({ ...input });
 
     const serviceType = await serviceTypeObj.save();
+    const flatST = serviceType.toObject(utils.resOpts);
 
-    res.status(201).json(serviceType);
+    res.status(201).json(flatST);
   } catch (error) {
     if (fs.existsSync(thumbnail.path)) {
       fs.unlink(thumbnail.path, (error) => {
@@ -156,16 +171,39 @@ exports.updateServiceType = async (req, res, next) => {
       input.thumbnail = thumbnail.path;
     }
 
-    const result = await ServiceType.updateOne({ _id: serviceTypeId }, { ...input });
+    if (input.themeBased === 'true') {
+      const themesIds = input.themes ? JSON.parse(input.themes) : [];
+      if (themesIds.length) {
+        input.themes = themesIds.map((obj) => new ObjectId(obj.theme));
+      } else {
+        const error = new Error('At least one theme must be selected for a theme based service type');
 
-    if (!result.matchedCount) {
+        error.statusCode = 400;
+        error.data = { path, value };
+
+        throw error;
+      }
+    } else {
+      input.themes = [];
+    }
+
+    const packagesIds = input.packages ? JSON.parse(input.packages) : [];
+    if (packagesIds.length) {
+      input.packages = packagesIds.map((obj) => new ObjectId(obj.pkg));
+    }
+
+    const result = await ServiceType.findOneAndUpdate({ _id: serviceTypeId }, { ...input }, { new: true });
+
+    if (!result) {
       const error = new Error('Service type does not exist');
       error.statusCode = 404;
 
       throw error;
     }
 
-    res.status(201).json(result);
+    const flatST = result.toObject(utils.resOpts);
+
+    res.status(201).json(flatST);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
