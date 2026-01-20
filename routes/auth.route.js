@@ -94,15 +94,41 @@ router.post(
   '/auth/admin/register',
   isAuth,
   isAdmin,
-  body(['email', 'password'])
+  body(['phone', 'email', 'name'])
     .trim()
     .notEmpty().withMessage('Missing parameter'),
   body('email')
     .isEmail().withMessage('Invalid email format')
     .normalizeEmail({ gmail_remove_dots: false }),
-  body('password')
-    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+  body('phone')
+    .isLength({ min: 9 }).withMessage('Parameter must be of length 9 at least'),
+  body('name')
+    .isLength({ min: 3 }).withMessage('Name must be at least 3 characters long'),
   authController.adminRegister
+);
+
+router.put(
+  '/auth/admin/:userId',
+  isAuth,
+  isAdmin,
+  body(['phone', 'email', 'name'])
+    .trim()
+    .notEmpty().withMessage('Missing parameter'),
+  body('email')
+    .isEmail().withMessage('Invalid email format')
+    .normalizeEmail({ gmail_remove_dots: false }),
+  body('phone')
+    .isLength({ min: 9 }).withMessage('Parameter must be of length 9 at least'),
+  body('name')
+    .isLength({ min: 3 }).withMessage('Name must be at least 3 characters long'),
+  authController.adminUpdate
+);
+
+router.delete(
+  '/auth/admin/:userId',
+  isAuth,
+  isAdmin,
+  authController.adminRemove
 );
 
 router.post(

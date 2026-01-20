@@ -5,7 +5,11 @@ const { validationResult } = require('express-validator');
 const twilio = require('twilio');
 
 const User = require('../models/user');
+const utils = require('../utils');
 const io = require('../socket');
+
+const allowedFilters = ['phone', 'email', 'name', 'role', 'createdAt', 'updatedAt'];
+const allowedSorters = ['phone', 'email', 'name', 'role', 'createdAt', 'updatedAt'];
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -271,10 +275,13 @@ exports.checkVerification = async (req, res, next) => {
 };
 
 exports.getUsersCount = async (req, res, next) => {
-  try {
-    const count = await User.countDocuments();
+  const { filter } = req.query;
+  const { query } = utils.prepareFilterAndSort(filter, '', allowedFilters, []);
 
-    res.status(200).json({ count });
+  try {
+    const count = await User.countDocuments(query);
+
+    res.status(200).json(count);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -285,7 +292,8 @@ exports.getUsersCount = async (req, res, next) => {
 };
 
 exports.getUsers = async (req, res, next) => {
-  const { skip, limit } = req.query;
+  const { skip, limit, filter, sort } = req.query;
+  const { query, sorter } = utils.prepareFilterAndSort(filter, sort, allowedFilters, allowedSorters);
 
   try {
     const user = await User.findById(req.userId);
@@ -297,9 +305,12 @@ exports.getUsers = async (req, res, next) => {
       throw error;
     }
 
-    const users = await User.find().skip(skip).limit(limit);
+    const users = await User.find(query, { _id: 1, phone: 1, email: 1, name: 1, role: 1, createdAt: 1 })
+      .sort(sorter)
+      .skip(skip)
+      .limit(limit);
 
-    res.status(200).json({ users });
+    res.status(200).json(users);
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -343,9 +354,10 @@ exports.getUser = async (req, res, next) => {
       throw error;
     }
 
-    const { role, ...resultUser } = user;
+    // const { role, ...resultUser } = user;
+    const { _id, phone, email, name, role, createdAt } = user;
 
-    res.status(200).json(resultUser);
+    res.status(200).json({ _id, phone, email, name, role, createdAt });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -566,8 +578,9 @@ exports.adminSignin = async (req, res, next) => {
 };
 
 exports.adminRegister = async (req, res, next) => {
-  const { phone, email, password } = req.body;
+  const { phone, email, name } = req.body;
   const errors = validationResult(req);
+  let user = null;
 
   try {
     if (!errors.isEmpty()) {
@@ -583,36 +596,121 @@ exports.adminRegister = async (req, res, next) => {
 
     const userExists = await User.findOne({ email });
 
-    if (userExists) {
+    if (userExists && userExists.role === '0') {
       const error = new Error('User already is registered');
       error.statusCode = 400;
 
       throw error;
+    } else if (userExists && userExists.role !== '0') {
+      userExists.phone = phone || userExists.phone;
+      userExists.name = name || userExists.name;
+      userExists.role = '0';
+
+      user = await userExists.save();
+    } else {
+      user = new User({ phone, email, name, role: '0' });
+
+      user = await user.save();
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const { _id, phone, email, name, role, createdAt } = user;
 
-    const userObj = new User({ phone, email, password: hashedPassword, role: '0', lastLogin: new Date() });
+    res.status(201).json({ _id, phone, email, name, role, createdAt });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
 
-    const user = await userObj.save();
+    next(error);
+  }
+};
 
-    const token = jwt.sign(
-      {
-        email: user.email,
-        userId: user._id.toString(),
-        userRole: user.role
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: '30d'
-      }
+exports.adminUpdate = async (req, res, next) => {
+  const { userId } = req.params;
+  const { phone, email, name } = req.body;
+  const errors = validationResult(req);
+
+  try {
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr;
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+
+      throw error;
+    }
+
+    const currentUser = await User.findById(req.userId);
+
+    if (!currentUser || req.userRole !== '0') {
+      const error = new Error('No authorization');
+      error.statusCode = 403;
+
+      throw error;
+    }
+
+    const result = await User.findByIdAndUpdate(
+      userId,
+      { phone, email, name },
+      { new: true }
     );
 
-    res.status(201).json({
-      token: token,
-      userId: user._id.toString(),
-      userRole: user.role
-    });
+    if (!result) {
+      const error = new Error('User does not exist');
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    const { _id, phone: updatedPhone, email: updatedEmail, name: updatedName, role, createdAt } = result;
+
+    res.status(200).json({ _id, phone: updatedPhone, email: updatedEmail, name: updatedName, role, createdAt });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    next(error);
+  }
+};
+
+exports.adminRemove = async (req, res, next) => {
+  const { userId } = req.params;
+  const errors = validationResult(req);
+
+  try {
+    if (!errors.isEmpty()) {
+      const validationErr = errors.array().shift();
+      const { msg, path, value } = validationErr;
+      const error = new Error(msg);
+
+      error.statusCode = 400;
+      error.data = { path, value };
+
+      throw error;
+    }
+
+    const currentUser = await User.findById(req.userId);
+
+    if (!currentUser || req.userRole !== '0') {
+      const error = new Error('No authorization');
+      error.statusCode = 403;
+
+      throw error;
+    }
+
+    const result = await User.findByIdAndUpdate(userId, { role: '1' });
+
+    if (!result) {
+      const error = new Error('User does not exist');
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    res.status(200).json({ message: 'User removed from admin successfully' });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
