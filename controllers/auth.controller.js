@@ -578,9 +578,8 @@ exports.adminSignin = async (req, res, next) => {
 };
 
 exports.adminRegister = async (req, res, next) => {
-  const { phone, email, name } = req.body;
+  const { email, phone, name } = req.body;
   const errors = validationResult(req);
-  let user = null;
 
   try {
     if (!errors.isEmpty()) {
@@ -595,27 +594,35 @@ exports.adminRegister = async (req, res, next) => {
     }
 
     const userExists = await User.findOne({ email });
+    
+    let user;
 
     if (userExists && userExists.role === '0') {
-      const error = new Error('User already is registered');
+      const error = new Error('Admin user already is registered');
       error.statusCode = 400;
 
       throw error;
     } else if (userExists && userExists.role !== '0') {
-      userExists.phone = phone || userExists.phone;
-      userExists.name = name || userExists.name;
+      // Update existing user to admin
       userExists.role = '0';
+      userExists.name = name;
+      userExists.phone = phone;
 
       user = await userExists.save();
     } else {
-      user = new User({ phone, email, name, role: '0' });
+      const userObj = new User({ email, phone, name, role: '0' });
 
-      user = await user.save();
+      user = await userObj.save();
     }
 
-    const { _id, phone, email, name, role, createdAt } = user;
-
-    res.status(201).json({ _id, phone, email, name, role, createdAt });
+    res.status(201).json({
+      _id: user._id.toString(),
+      email: user.email,
+      phone: user.phone,
+      name: user.name,
+      role: user.role,
+      createdAt: user.createdAt
+    });
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
