@@ -34,7 +34,7 @@ const populate = [
   },
   {
     path: 'costums.costum',
-    select: ['title', 'imagePath']
+    select: ['title', 'imagePath', 'withFriend']
   },
   {
     path: 'costums.size',
