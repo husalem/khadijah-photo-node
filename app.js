@@ -21,6 +21,7 @@ const serviceReqRoute = require('./routes/service-request.route');
 const kinderReqRoute = require('./routes/kindergarten-request.route');
 const orderRoute = require('./routes/order.route');
 const kindergartenClassRoute = require('./routes/kindergarten-class.route');
+const sutdioSampleRoute = require('./routes/studio-sample.route');
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use(serviceReqRoute);
 app.use(kinderReqRoute);
 app.use(orderRoute);
 app.use(kindergartenClassRoute);
+app.use(sutdioSampleRoute);
 
 // Resource not found handler
 app.use(notFound);
